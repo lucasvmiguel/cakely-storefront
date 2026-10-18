@@ -72,7 +72,7 @@ export function HeroCarousel() {
       >
         <ChevronRight className="size-5" />
       </button>
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+      <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2">
         {slides.map((s, i) => (
           <button
             key={s.headline}
@@ -80,8 +80,10 @@ export function HeroCarousel() {
             aria-label={`Go to slide ${i + 1}`}
             aria-current={i === active}
             onClick={() => setActive(i)}
-            className={`size-2.5 rounded-full transition-colors ${i === active ? "bg-white" : "bg-white/50"}`}
-          />
+            className="flex size-6 items-center justify-center"
+          >
+            <span className={`size-2.5 rounded-full transition-colors ${i === active ? "bg-white" : "bg-white/50"}`} />
+          </button>
         ))}
       </div>
     </section>

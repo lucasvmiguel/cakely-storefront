@@ -1,6 +1,6 @@
 import type { ResponsiveImage as Img } from "~/content/site";
 
-/** Self-hosted marketing images in /public/images (800w and 1200w WebP). */
+/** Self-hosted marketing images in /public/images (480w, 800w and 1200w WebP). */
 export function ResponsiveImage({
   image,
   className,
@@ -15,8 +15,8 @@ export function ResponsiveImage({
   const b = `/images/${image.base}`;
   return (
     <img
-      src={`${b}-1200.webp`}
-      srcSet={`${b}-800.webp 800w, ${b}-1200.webp 1200w`}
+      src={`${b}-800.webp`}
+      srcSet={`${b}-480.webp 480w, ${b}-800.webp 800w, ${b}-1200.webp 1200w`}
       sizes={sizes}
       alt={image.alt}
       className={className}

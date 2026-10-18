@@ -6,6 +6,7 @@ import { useRootData } from "~/lib/root-data";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
+import { productImage } from "~/lib/images";
 import { MIN_ORDER_AMOUNT } from "~/lib/config";
 import { EUR, formatMoney } from "~/lib/money";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
@@ -69,7 +70,7 @@ export default function Cart() {
           {items.map(({ line, product: p }) => (
             <li key={line.variantId} className="flex gap-4 p-4">
               <Link to={`/products/${p.slug}`} className="size-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-                {p.images[0] && <img src={p.images[0]} alt={p.title} className="size-full object-cover" />}
+                {p.images[0] && <img src={productImage(p.images[0], 200)} alt={p.title} width={96} height={96} className="size-full object-cover" />}
               </Link>
               <div className="flex flex-1 flex-col gap-1">
                 <div className="flex items-start justify-between gap-2">

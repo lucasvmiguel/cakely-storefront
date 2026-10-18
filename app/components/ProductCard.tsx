@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
+import { productImage, productSrcSet } from "~/lib/images";
 import { formatMoney } from "~/lib/money";
 
 export function Price({ product, className = "" }: { product: Product; className?: string }) {
@@ -52,7 +53,9 @@ export function ProductCard({ product, priority = false }: { product: Product; p
       <div className="relative overflow-hidden bg-muted" style={{ paddingBottom: "78.86%" }}>
         {product.images[0] && (
           <img
-            src={product.images[0]}
+            src={productImage(product.images[0], 640)}
+            srcSet={productSrcSet(product.images[0])}
+            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, calc(100vw - 2rem)"
             alt={product.title}
             loading={priority ? "eager" : "lazy"}
             className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105"

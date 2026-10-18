@@ -76,7 +76,7 @@ export function Header() {
           <X className="size-4" />
         </button>
         <div className="flex h-28 items-center justify-center overflow-hidden">
-          <img src={site.logo} alt="Cakely" className="h-44 w-auto max-w-none" />
+          <img src={site.logo} alt="Cakely" width={176} height={176} className="h-44 w-auto max-w-none" />
         </div>
         <ul className="border-b px-4 py-2">
           <li>

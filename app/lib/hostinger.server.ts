@@ -27,13 +27,7 @@ async function fetchProducts(): Promise<Product[]> {
     .sort((a, b) => (Number(a.sku) || Infinity) - (Number(b.sku) || Infinity));
 }
 
-/**
- * Returns the live catalog for the sales channel, cached in memory for a short
- * time so every page render doesn't hit Hostinger. If Hostinger is briefly
- * unreachable we keep serving the last good copy.
- */
-export async function getProducts(): Promise<Product[]> {
-  if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.products;
+function refresh() {
   inflight ??= fetchProducts()
     .then((products) => {
       cache = { at: Date.now(), products };
@@ -50,6 +44,20 @@ export async function getProducts(): Promise<Product[]> {
       inflight = null;
     });
   return inflight;
+}
+
+/**
+ * Returns the live catalog for the sales channel, cached in memory so page
+ * renders don't wait on Hostinger. Once the cache is older than the TTL, the
+ * cached copy is still returned immediately while a fresh one loads in the
+ * background (stale-while-revalidate); only the very first request after the
+ * server starts waits for Hostinger. If Hostinger is unreachable we keep
+ * serving the last good copy.
+ */
+export async function getProducts(): Promise<Product[]> {
+  if (!cache) return refresh();
+  if (Date.now() - cache.at >= CACHE_TTL_MS) void refresh();
+  return cache.products;
 }
 
 export async function getProductBySlug(slug: string) {

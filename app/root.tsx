@@ -23,15 +23,13 @@ import { DEFAULT_GA_MEASUREMENT_ID, DEFAULT_META_PIXEL_ID } from "./lib/config";
 import { siteUrl } from "./lib/site-url.server";
 import { getProducts, SALES_CHANNEL_ID } from "./lib/hostinger.server";
 
-const FONT_URL = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap";
-
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: site.favicon, type: "image/png" },
   { rel: "apple-touch-icon", href: site.favicon },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  // The weights used above the fold; 500 and 600 load on demand.
+  { rel: "preload", href: "/fonts/poppins-400.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+  { rel: "preload", href: "/fonts/poppins-700.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
   { rel: "preconnect", href: "https://cdn.zyrosite.com" },
-  { rel: "stylesheet", href: FONT_URL },
 ];
 
 export async function loader() {

@@ -88,7 +88,7 @@ export function Footer({ markdownPath }: { markdownPath: string | null }) {
         </div>
       </footer>
       {markdownPath && (
-        <div className="flex items-center justify-center gap-2 bg-muted px-4 py-2 text-center text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 bg-muted px-4 py-2 text-center text-sm text-neutral-600">
           <FileText className="size-4 shrink-0" />
           <span>
             This page is also available in a machine-readable format for LLMs and AI tools.{" "}

@@ -22,8 +22,8 @@ export const links: Route.LinksFunction = () => [
   {
     rel: "preload",
     as: "image",
-    href: "/images/hero-1-1200.webp",
-    imageSrcSet: "/images/hero-1-800.webp 800w, /images/hero-1-1200.webp 1200w",
+    href: "/images/hero-1-800.webp",
+    imageSrcSet: "/images/hero-1-480.webp 480w, /images/hero-1-800.webp 800w, /images/hero-1-1200.webp 1200w",
     imageSizes: "100vw",
   },
 ];
@@ -84,7 +84,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <div className={i % 2 === 1 ? "md:order-2" : ""}>
                 <ResponsiveImage
                   image={step.image}
-                  sizes="(min-width: 768px) 50vw, 100vw"
+                  sizes="(min-width: 1024px) 480px, (min-width: 768px) 45vw, calc(100vw - 2rem)"
                   className="aspect-[4/3] w-full rounded-lg object-cover"
                 />
               </div>
@@ -122,7 +122,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12">
           <ResponsiveImage
             image={home.about.image}
-            sizes="(min-width: 768px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 480px, (min-width: 768px) 45vw, calc(100vw - 2rem)"
             className="aspect-[4/3] w-full rounded-lg object-cover"
           />
           <div className="flex flex-col gap-4">

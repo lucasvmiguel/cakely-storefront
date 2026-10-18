@@ -38,6 +38,10 @@ if (DEVELOPMENT) {
     express.static("build/client/assets", { immutable: true, maxAge: "1y" }),
   );
   app.use(morgan("tiny"));
+  // Fonts never change; images keep their file names, so after replacing one
+  // give it a new name (or visitors may see the old one for up to 30 days).
+  app.use("/fonts", express.static("build/client/fonts", { immutable: true, maxAge: "1y" }));
+  app.use("/images", express.static("build/client/images", { maxAge: "30d" }));
   app.use(express.static("build/client", { maxAge: "1h" }));
   app.use(await import(BUILD_PATH).then((mod) => mod.app));
 }
