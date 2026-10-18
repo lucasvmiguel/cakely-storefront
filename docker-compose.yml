@@ -1,0 +1,14 @@
+# On the VPS: `docker compose pull && docker compose up -d`
+# (log in once first: `docker login ghcr.io -u lucasvmiguel`).
+# For a local build instead, run `docker compose up -d --build`.
+services:
+  storefront:
+    image: ghcr.io/lucasvmiguel/cakely-storefront:latest
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      SITE_URL: https://trycakely.com
+      SALES_CHANNEL_ID: scha_01M57MQ3C0DCZN4WGXTYEFQ1BS
+      CATALOG_CACHE_SECONDS: "60"

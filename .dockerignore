@@ -1,0 +1,9 @@
+.react-router
+.agents
+.claude
+.git
+build
+node_modules
+.env
+*.md
+!README.md
