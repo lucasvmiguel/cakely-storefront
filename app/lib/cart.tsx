@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { HOSTINGER_API } from "./config";
+import { withCheckoutConsent } from "./consent";
 
 // The basket lives in localStorage and stores only variant ids and quantities.
 // Titles, prices and images always come from the live catalog.
@@ -134,7 +135,7 @@ export function useCart() {
 
 /**
  * Creates a Hostinger cart with every line and returns the hosted checkout
- * URL to redirect to. Hostinger collects address, shipping and payment.
+ * URL to redirect to, plus the cart id. Hostinger collects address, shipping and payment.
  */
 export async function startCheckout(salesChannelId: string, lines: CartLine[]) {
   const origin = window.location.origin;
@@ -156,5 +157,20 @@ export async function startCheckout(salesChannelId: string, lines: CartLine[]) {
   if (!res.ok || !body?.url) {
     throw new Error(body?.message ?? `Checkout failed (${res.status})`);
   }
-  return body.url as string;
+  return {
+    url: withCheckoutConsent(body.url as string),
+    cartId: cartIdFromToken(body.cart_token) ?? crypto.randomUUID(),
+  };
+}
+
+/** Reads the cart id ("cart_…") from the payload of Hostinger's cart token. */
+function cartIdFromToken(token: unknown) {
+  if (typeof token !== "string") return null;
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const id = JSON.parse(atob(payload))?.cart_id;
+    return typeof id === "string" ? id : null;
+  } catch {
+    return null;
+  }
 }

@@ -1,8 +1,9 @@
 import { ChevronUp, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, useSubmit } from "react-router";
 import type { Route } from "./+types/search";
 import { ProductCard } from "~/components/ProductCard";
+import { track } from "~/lib/analytics";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { getProducts } from "~/lib/hostinger.server";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
@@ -79,6 +80,10 @@ export default function Search({ loaderData }: Route.ComponentProps) {
   const { results, flavours, filters } = loaderData;
   const submit = useSubmit();
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    if (filters.q) track.search(filters.q);
+  }, [filters.q]);
 
   const filtersForm = (
     <Form method="get" onChange={(e) => submit(e.currentTarget, { preventScrollReset: true, replace: true })}>

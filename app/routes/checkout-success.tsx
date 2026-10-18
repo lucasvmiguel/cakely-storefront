@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/checkout-success";
 import { site } from "~/content/site";
+import { takePendingOrder, track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
 
@@ -25,6 +26,8 @@ export default function CheckoutSuccess() {
     if (!ready || cleared.current) return;
     cleared.current = true;
     clear();
+    const order = takePendingOrder();
+    if (order) track.purchase(order);
   }, [ready, clear]);
 
   return (

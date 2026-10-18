@@ -1,5 +1,6 @@
 import {
   isRouteErrorResponse,
+  useRouteLoaderData,
   Link,
   Links,
   Meta,
@@ -11,12 +12,14 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { Analytics } from "./components/Analytics";
 import { AnnouncementBar } from "./components/AnnouncementBar";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { AddedToast, CookieBanner, InstagramFab } from "./components/Overlays";
 import { site } from "./content/site";
 import { CartProvider } from "./lib/cart";
+import { DEFAULT_GA_MEASUREMENT_ID, DEFAULT_META_PIXEL_ID } from "./lib/config";
 import { siteUrl } from "./lib/site-url.server";
 import { getProducts, SALES_CHANNEL_ID } from "./lib/hostinger.server";
 
@@ -35,6 +38,11 @@ export async function loader() {
   return {
     siteUrl: siteUrl(),
     salesChannelId: SALES_CHANNEL_ID,
+    // Set to "" to turn a tracker off.
+    analytics: {
+      gaId: process.env.GA_MEASUREMENT_ID ?? DEFAULT_GA_MEASUREMENT_ID,
+      pixelId: process.env.META_PIXEL_ID ?? DEFAULT_META_PIXEL_ID,
+    },
     products: await getProducts(),
   };
 }
@@ -51,6 +59,7 @@ function markdownPathFor(pathname: string) {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
+  const data = useRouteLoaderData<typeof loader>("root");
   return (
     <html lang="en">
       <head>
@@ -69,6 +78,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <InstagramFab />
           <CookieBanner />
           <AddedToast />
+          {data && <Analytics gaId={data.analytics.gaId || null} pixelId={data.analytics.pixelId || null} />}
         </CartProvider>
         <ScrollRestoration />
         <Scripts />

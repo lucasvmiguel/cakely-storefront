@@ -1,9 +1,10 @@
 import { Lock, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/cart";
 import { useRootData } from "~/lib/root-data";
 import { effectivePrice, type Product } from "~/lib/catalog";
+import { rememberPendingOrder, track } from "~/lib/analytics";
 import { startCheckout, useCart } from "~/lib/cart";
 import { MIN_ORDER_AMOUNT } from "~/lib/config";
 import { EUR, formatMoney } from "~/lib/money";
@@ -34,15 +35,25 @@ export default function Cart() {
   const belowMinimum = subtotal < MIN_ORDER_AMOUNT;
   const unavailable = items.some((i) => !i.product.available);
 
+  const viewTracked = useRef(false);
+  useEffect(() => {
+    if (!ready || viewTracked.current) return;
+    viewTracked.current = true;
+    track.viewCart(items.map((i) => ({ product: i.product, quantity: i.line.quantity })));
+  });
+
   async function checkout() {
     if (!root || belowMinimum || unavailable) return;
     setStatus("loading");
     setError(null);
+    const orderItems = items.map((i) => ({ product: i.product, quantity: i.line.quantity }));
     try {
-      const url = await startCheckout(
+      const { url, cartId } = await startCheckout(
         root.salesChannelId,
         items.map((i) => i.line),
       );
+      track.beginCheckout(orderItems);
+      rememberPendingOrder(cartId, orderItems);
       window.location.assign(url);
     } catch (e) {
       setStatus("error");

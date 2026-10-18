@@ -3,27 +3,18 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { site } from "~/content/site";
 import { useCart } from "~/lib/cart";
+import { readConsent, saveConsent, type Consent } from "~/lib/consent";
 import { InstagramIcon } from "./icons";
-
-const CONSENT_KEY = "cakely-cookie-consent";
 
 export function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    try {
-      setVisible(!localStorage.getItem(CONSENT_KEY));
-    } catch {
-      setVisible(true);
-    }
+    setVisible(readConsent() === null);
   }, []);
 
-  const choose = (value: "accepted" | "declined") => {
-    try {
-      localStorage.setItem(CONSENT_KEY, value);
-    } catch {
-      // ignore
-    }
+  const choose = (value: Consent) => {
+    saveConsent(value);
     setVisible(false);
   };
 

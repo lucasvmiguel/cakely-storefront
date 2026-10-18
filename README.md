@@ -43,6 +43,26 @@ A few things live in this repo instead:
 - **Markdown twins:** add `.md` to any page URL. Available pages are `/home.md`, `/products/<slug>.md`, `/faq.md`, `/collections.md`, `/return-policy.md`, `/terms.md` and `/privacy.md`. Each HTML page links to its twin with `<link rel="alternate" type="text/markdown">` and in the footer bar.
 - `/llms.txt` is an index of the site for LLMs.
 
+## Analytics
+
+Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's docs say: "Sales channels such as TikTok Shop, Meta, and custom channels don't share traffic data with the Traffic tab." Orders still appear in Hostinger's Sales tab. Visitor tracking comes from two separate tools:
+
+- **Google Analytics 4** and **Meta Pixel**. They load only after the visitor clicks **Accept** on the cookie banner. Before that, and after **Decline**, no tracking script loads (`app/lib/analytics.ts`).
+- **Funnel events**, sent to both tools:
+
+  | Step | GA4 event | Meta event |
+  | --- | --- | --- |
+  | Page view | `page_view` | `PageView` |
+  | Product page | `view_item` | `ViewContent` |
+  | Add to basket | `add_to_cart` | `AddToCart` |
+  | Basket page | `view_cart` | — |
+  | Search | `search` | `Search` |
+  | Proceed to Checkout | `begin_checkout` | `InitiateCheckout` |
+  | Back on `/checkout/success` | `purchase` | `Purchase` |
+
+  The `purchase` event uses the Hostinger cart id as its transaction id.
+- **Consent at checkout.** The visitor's cookie choice is forwarded to Hostinger's checkout (`cookieConsentAnalytics`, `cookieConsentMarketing`, `cookieConsentPlatformAnalytics`), the same way Hostinger's own storefront does it.
+
 ## Development
 
 ```bash
@@ -92,6 +112,8 @@ Put your reverse proxy (Nginx, Caddy, Traefik) in front for HTTPS and forward tr
 | `SITE_URL` | `https://trycakely.com` | Public origin. Used for canonical URLs, the sitemap and `.md` links |
 | `SALES_CHANNEL_ID` | `scha_01M57MQ3C0DCZN4WGXTYEFQ1BS` | Hostinger custom sales channel |
 | `CATALOG_CACHE_SECONDS` | `60` | How long to cache the catalog in memory |
+| `GA_MEASUREMENT_ID` | `G-9ZHP15MWQM` | Google Analytics 4. Set to an empty string to turn it off |
+| `META_PIXEL_ID` | `1161492405801977` | Meta Pixel. Set to an empty string to turn it off |
 | `PORT` | `3000` | HTTP port |
 
 If the site ever moves to a different domain, also update the sales channel URL in Hostinger. That keeps the hosted checkout's "Return to store" link correct.

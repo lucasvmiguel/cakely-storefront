@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { data, Link } from "react-router";
 import type { Route } from "./+types/product";
 import { AddToBasketButton, Price, ProductCard } from "~/components/ProductCard";
+import { track } from "~/lib/analytics";
 import { ProductGallery } from "~/components/ProductGallery";
 import { site } from "~/content/site";
 import { effectivePrice, htmlToText } from "~/lib/catalog";
@@ -108,6 +109,11 @@ function sanitize(html: string) {
 
 export default function ProductPage({ loaderData }: Route.ComponentProps) {
   const { product: p, related } = loaderData;
+
+  useEffect(() => {
+    track.viewItem(p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.id]);
 
   // Mobile: sticky "Add to Basket" bar once the main button scrolls away.
   const [showSticky, setShowSticky] = useState(false);

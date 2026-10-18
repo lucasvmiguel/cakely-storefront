@@ -41,7 +41,7 @@ export function Footer({ markdownPath }: { markdownPath: string | null }) {
 
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="space-y-4">
-              <img src={site.logo} alt="Cakely" className="-ml-6 h-24 w-auto -my-6" loading="lazy" />
+              <img src="/images/logo-wordmark.svg" alt="Cakely" width={125} height={24} className="h-6 w-auto" loading="lazy" />
               <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{site.description}</p>
             </div>
             <div>

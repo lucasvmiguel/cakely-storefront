@@ -1,6 +1,7 @@
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
 import { effectivePrice, type Product } from "~/lib/catalog";
+import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
 import { formatMoney } from "~/lib/money";
 
@@ -30,7 +31,10 @@ export function AddToBasketButton({
     <button
       type="button"
       disabled={!product.available}
-      onClick={() => add(product.variantId)}
+      onClick={() => {
+        add(product.variantId);
+        track.addToCart(product);
+      }}
       className={`relative z-20 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 ${
         size === "lg" ? "h-10" : "h-9"
       } ${className}`}
