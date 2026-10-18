@@ -22,7 +22,7 @@ export function HeroCarousel() {
     <section
       aria-roledescription="carousel"
       aria-label="Featured"
-      className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9] md:aspect-[16/6]"
+      className="skeleton aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9] md:aspect-[16/6]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

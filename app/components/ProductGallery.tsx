@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { productImage, productSrcSet } from "~/lib/images";
+import { productImage, productSrcSet, stopSkeleton } from "~/lib/images";
 
 export function ProductGallery({ images, title }: { images: string[]; title: string }) {
   const [active, setActive] = useState(0);
@@ -37,9 +37,9 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
               type="button"
               onClick={() => setActive(i)}
               aria-label={`Show image ${i + 1}`}
-              className={`size-20 overflow-hidden rounded-[0.875rem] border-2 ${i === active ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}
+              className={`skeleton size-20 overflow-hidden rounded-[0.875rem] border-2 ${i === active ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}
             >
-              <img src={productImage(src, 160)} alt="" width={80} height={80} className="size-full object-cover" loading="lazy" />
+              <img ref={stopSkeleton} src={productImage(src, 160)} alt="" width={80} height={80} className="size-full object-cover" loading="lazy" />
             </button>
           ))}
         </div>
@@ -47,7 +47,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
 
       <div className="group relative flex-1">
         <div
-          className="relative w-full cursor-zoom-in overflow-hidden rounded-[0.875rem] bg-muted"
+          className="skeleton w-full cursor-zoom-in overflow-hidden rounded-[0.875rem]"
           style={{ paddingBottom: "125%" }}
           onClick={() => setZoom(true)}
           onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
@@ -61,6 +61,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
           {images.map((src, i) => (
             <img
               key={src}
+              ref={stopSkeleton}
               src={productImage(src, 960)}
               srcSet={productSrcSet(src, [480, 640, 960, 1280])}
               sizes="(min-width: 768px) 50vw, 100vw"
@@ -95,7 +96,14 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
       {zoom &&
         createPortal(
           <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90" onClick={() => setZoom(false)}>
-            <img src={productImage(images[active], 1600)} alt={title} className="max-h-[90vh] max-w-[92vw] object-contain" onClick={(e) => e.stopPropagation()} />
+            {/* Fixed 4:5 box (the gallery's ratio) so the viewer doesn't resize as the photo loads. */}
+            <div
+              key={images[active]}
+              className="skeleton aspect-[4/5] w-[min(92vw,72vh)] overflow-hidden rounded-[0.875rem] [&[data-loaded]]:bg-transparent"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img ref={stopSkeleton} src={productImage(images[active], 1600)} alt={title} className="absolute inset-0 size-full object-contain" />
+            </div>
             <button type="button" aria-label="Close" className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
               <X className="size-5" />
             </button>

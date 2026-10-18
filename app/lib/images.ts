@@ -12,3 +12,13 @@ export function productSrcSet(url: string, widths = [320, 480, 640, 800, 960]) {
   if (!url.startsWith(RESIZABLE)) return undefined;
   return widths.map((w) => `${productImage(url, w)} ${w}w`).join(", ");
 }
+
+/** Ref for an <img> inside a `.skeleton` box: stops the pulse once the image
+ *  has loaded or failed. Also catches images that finished before hydration. */
+export function stopSkeleton(img: HTMLImageElement | null) {
+  if (!img) return;
+  const done = () => img.closest(".skeleton")?.setAttribute("data-loaded", "");
+  if (img.complete) return done();
+  img.addEventListener("load", done, { once: true });
+  img.addEventListener("error", done, { once: true });
+}

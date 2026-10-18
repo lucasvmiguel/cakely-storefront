@@ -82,11 +82,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           {home.howTo.steps.map((step, i) => (
             <div key={step.title} className="grid items-center gap-8 md:grid-cols-2 md:gap-12">
               <div className={i % 2 === 1 ? "md:order-2" : ""}>
-                <ResponsiveImage
-                  image={step.image}
-                  sizes="(min-width: 1024px) 480px, (min-width: 768px) 45vw, calc(100vw - 2rem)"
-                  className="aspect-[4/3] w-full rounded-lg object-cover"
-                />
+                <div className="skeleton aspect-[4/3] w-full overflow-hidden rounded-lg">
+                  <ResponsiveImage
+                    image={step.image}
+                    sizes="(min-width: 1024px) 480px, (min-width: 768px) 45vw, calc(100vw - 2rem)"
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                </div>
               </div>
               <div className="flex flex-col items-start gap-4">
                 <h2 className="text-3xl font-bold md:text-4xl">{step.title}</h2>
@@ -120,11 +122,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
       <section className="container">
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12">
-          <ResponsiveImage
-            image={home.about.image}
-            sizes="(min-width: 1024px) 480px, (min-width: 768px) 45vw, calc(100vw - 2rem)"
-            className="aspect-[4/3] w-full rounded-lg object-cover"
-          />
+          <div className="skeleton aspect-[4/3] w-full overflow-hidden rounded-lg">
+            <ResponsiveImage
+              image={home.about.image}
+              sizes="(min-width: 1024px) 480px, (min-width: 768px) 45vw, calc(100vw - 2rem)"
+              className="absolute inset-0 size-full object-cover"
+            />
+          </div>
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-bold md:text-4xl">{home.about.title}</h2>
             <p className="text-lg text-muted-foreground">{home.about.body}</p>

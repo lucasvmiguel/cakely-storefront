@@ -4,7 +4,7 @@ import { ResponsiveImage } from "./ResponsiveImage";
 
 export function FeatureBanner({ headline, cta, href, image }: { headline: string; cta: string; href: string; image: Img }) {
   return (
-    <section className="relative flex min-h-[400px] w-full items-center justify-center overflow-hidden md:min-h-[500px]">
+    <section className="skeleton flex min-h-[400px] w-full items-center justify-center overflow-hidden md:min-h-[500px]">
       <ResponsiveImage image={image} className="absolute inset-0 size-full object-cover" />
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative flex max-w-3xl flex-col items-center gap-6 px-8 py-12 text-center md:px-16">

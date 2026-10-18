@@ -129,3 +129,38 @@
 .animate-fade-up {
   animation: fade-up 0.5s ease-out both;
 }
+
+/* Grey placeholder for image boxes. The box has its own size (aspect ratio,
+   padding or fixed width/height), so nothing moves when the image arrives.
+   Only the pseudo-element's opacity animates, which runs on the compositor;
+   `stopSkeleton` (lib/images) ends it once the image has loaded. */
+@layer components {
+  .skeleton {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--color-muted);
+  }
+  .skeleton::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: oklch(0.92 0 0);
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+  .skeleton[data-loaded]::before {
+    content: none;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::before {
+    animation: none;
+    opacity: 0;
+  }
+}

@@ -5,7 +5,7 @@ import { Calendar } from "~/components/Calendar";
 import type { Route } from "./+types/checkout";
 import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
-import { productImage } from "~/lib/images";
+import { productImage, stopSkeleton } from "~/lib/images";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import {
   CheckoutError,
@@ -410,8 +410,8 @@ export default function Checkout() {
           <ul className="space-y-3">
             {items.map(({ line, product: p }) => (
               <li key={line.variantId} className="flex items-center gap-3">
-                <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  {p.images[0] && <img src={productImage(p.images[0], 120)} alt="" width={56} height={56} className="size-full object-cover" />}
+                <div className="skeleton size-14 shrink-0 overflow-hidden rounded-lg">
+                  {p.images[0] && <img ref={stopSkeleton} src={productImage(p.images[0], 120)} alt="" width={56} height={56} className="size-full object-cover" />}
                 </div>
                 <div className="flex-1 text-sm">
                   <p className="font-medium">{p.title}</p>

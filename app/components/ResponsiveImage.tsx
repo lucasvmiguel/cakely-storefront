@@ -1,6 +1,8 @@
 import type { ResponsiveImage as Img } from "~/content/site";
+import { stopSkeleton } from "~/lib/images";
 
-/** Self-hosted marketing images in /public/images (480w, 800w and 1200w WebP). */
+/** Self-hosted marketing images in /public/images (480w, 800w and 1200w WebP).
+ *  Place inside a sized `.skeleton` box for the loading placeholder. */
 export function ResponsiveImage({
   image,
   className,
@@ -15,6 +17,7 @@ export function ResponsiveImage({
   const b = `/images/${image.base}`;
   return (
     <img
+      ref={stopSkeleton}
       src={`${b}-800.webp`}
       srcSet={`${b}-480.webp 480w, ${b}-800.webp 800w, ${b}-1200.webp 1200w`}
       sizes={sizes}
