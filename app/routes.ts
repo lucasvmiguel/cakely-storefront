@@ -5,6 +5,7 @@ export default [
   route("search", "routes/search.tsx"),
   route("products/:slug", "routes/product.tsx"),
   route("cart", "routes/cart.tsx"),
+  route("checkout", "routes/checkout.tsx"),
   route("checkout/success", "routes/checkout-success.tsx"),
   route("faq", "routes/faq.tsx"),
   route("return-policy", "routes/policy.tsx", { id: "return-policy" }),

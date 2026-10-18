@@ -1,11 +1,11 @@
 import { Lock, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/cart";
 import { useRootData } from "~/lib/root-data";
 import { effectivePrice, type Product } from "~/lib/catalog";
-import { rememberPendingOrder, track } from "~/lib/analytics";
-import { startCheckout, useCart } from "~/lib/cart";
+import { track } from "~/lib/analytics";
+import { useCart } from "~/lib/cart";
 import { MIN_ORDER_AMOUNT } from "~/lib/config";
 import { EUR, formatMoney } from "~/lib/money";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
@@ -23,8 +23,6 @@ export function meta({ matches }: Route.MetaArgs) {
 export default function Cart() {
   const root = useRootData();
   const { lines, ready, setQuantity, remove } = useCart();
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [error, setError] = useState<string | null>(null);
 
   const byVariant = new Map<string, Product>((root?.products ?? []).map((p) => [p.variantId, p]));
   const items = lines
@@ -42,24 +40,7 @@ export default function Cart() {
     track.viewCart(items.map((i) => ({ product: i.product, quantity: i.line.quantity })));
   });
 
-  async function checkout() {
-    if (!root || belowMinimum || unavailable) return;
-    setStatus("loading");
-    setError(null);
-    const orderItems = items.map((i) => ({ product: i.product, quantity: i.line.quantity }));
-    try {
-      const { url, cartId } = await startCheckout(
-        root.salesChannelId,
-        items.map((i) => i.line),
-      );
-      track.beginCheckout(orderItems);
-      rememberPendingOrder(cartId, orderItems);
-      window.location.assign(url);
-    } catch (e) {
-      setStatus("error");
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
-    }
-  }
+
 
   if (!ready) return <div className="min-h-[60vh]" />;
 
@@ -161,18 +142,21 @@ export default function Cart() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={checkout}
-            disabled={belowMinimum || unavailable || status === "loading" || !root}
-            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {status === "loading" ? "Redirecting to checkout…" : "Proceed to Checkout"}
-          </button>
-          {error && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
-              {error}
-            </p>
+          {belowMinimum || unavailable ? (
+            <button
+              type="button"
+              disabled
+              className="mt-4 inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground opacity-50"
+            >
+              Proceed to Checkout
+            </button>
+          ) : (
+            <Link
+              to="/checkout"
+              className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Proceed to Checkout
+            </Link>
           )}
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
             <Lock className="size-3" /> Secure checkout

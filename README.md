@@ -5,7 +5,7 @@ The trycakely.com storefront, with **Hostinger Ecommerce** as the backend.
 - **Frontend:** React Router (SSR) + Vite + React + Tailwind, served by a small Express server (`server.js`).
 - **Catalog:** fetched live from the Hostinger Storefront API for the custom sales channel `scha_01M57MQ3C0DCZN4WGXTYEFQ1BS`. It is cached in memory for 60s, so product, price and stock edits in the Hostinger dashboard show up without a redeploy.
 - **Basket:** kept in the browser (`localStorage`). It stores only variant ids and quantities.
-- **Checkout:** "Proceed to Checkout" sends the basket to Hostinger, which redirects the customer to its hosted checkout at checkout.hostinger.com. That page collects the address and handles shipping and payment (Tikkie, Cash on delivery). Orders show up in the Hostinger dashboard.
+- **Checkout:** runs on the site itself at `/checkout` (`app/routes/checkout.tsx`, `app/lib/checkout.ts`). The customer never leaves trycakely.com. Orders are created in Hostinger and appear in the dashboard as usual. See [Checkout](#checkout) below.
 - **€20 minimum order:** enforced in the basket.
 
 No API keys or secrets are needed. The Storefront API is public.
@@ -43,6 +43,20 @@ A few things live in this repo instead:
 - **Markdown twins:** add `.md` to any page URL. Available pages are `/home.md`, `/products/<slug>.md`, `/faq.md`, `/collections.md`, `/return-policy.md`, `/terms.md` and `/privacy.md`. Each HTML page links to its twin with `<link rel="alternate" type="text/markdown">` and in the footer bar.
 - `/llms.txt` is an index of the site for LLMs.
 
+## Checkout
+
+The checkout page runs these steps against the Hostinger Storefront API, all from the customer's browser:
+
+1. **Create a Hostinger cart** from the basket when the page opens. This gives the real delivery price and lets discount codes be checked.
+2. **Discount codes.** The documented API has no endpoint for them, so the page calls the one Hostinger's own hosted checkout uses (`POST /store/carts/{cart_token}`). It isn't a public API and could change. If it breaks, the field shows an error and checkout still works without the code.
+3. **Place order.** The page saves the email and address, sets shipping, opens a payment session with the chosen method, and completes the cart. That creates the order in Hostinger, which sends its usual order emails.
+
+**Delivery date.** Customers pick a Saturday or Sunday. Orders placed Monday–Wednesday can get that same weekend; later orders get the next one (`app/lib/delivery.ts`). Hostinger has no delivery-date field, so the date is saved on the order's shipping address as the second line, for example "Delivery: Saturday, 24 October 2026". It shows in the dashboard and in order emails.
+
+**Payment methods** are listed in `PAYMENT_METHODS` in `app/lib/config.ts`, using the Hostinger store payment provider id. Only manual methods such as Tikkie work on-site. Card payments through Stripe or PayPal would need their payment form built into the page first, so connecting one in Hostinger won't make it appear here.
+
+**€20 minimum.** `/checkout` sends the customer back to the basket when the basket is below the minimum.
+
 ## Analytics
 
 Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's docs say: "Sales channels such as TikTok Shop, Meta, and custom channels don't share traffic data with the Traffic tab." Orders still appear in Hostinger's Sales tab. Visitor tracking comes from two separate tools:
@@ -57,11 +71,10 @@ Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's 
   | Add to basket | `add_to_cart` | `AddToCart` |
   | Basket page | `view_cart` | — |
   | Search | `search` | `Search` |
-  | Proceed to Checkout | `begin_checkout` | `InitiateCheckout` |
-  | Back on `/checkout/success` | `purchase` | `Purchase` |
+  | Checkout page opened | `begin_checkout` | `InitiateCheckout` |
+  | Order placed | `purchase` | `Purchase` |
 
   The `purchase` event uses the Hostinger cart id as its transaction id.
-- **Consent at checkout.** The visitor's cookie choice is forwarded to Hostinger's checkout (`cookieConsentAnalytics`, `cookieConsentMarketing`, `cookieConsentPlatformAnalytics`), the same way Hostinger's own storefront does it.
 
 ## Development
 
@@ -116,4 +129,4 @@ Put your reverse proxy (Nginx, Caddy, Traefik) in front for HTTPS and forward tr
 | `META_PIXEL_ID` | `1161492405801977` | Meta Pixel. Set to an empty string to turn it off |
 | `PORT` | `3000` | HTTP port |
 
-If the site ever moves to a different domain, also update the sales channel URL in Hostinger. That keeps the hosted checkout's "Return to store" link correct.
+If the site ever moves to a different domain, also update the sales channel URL in Hostinger.

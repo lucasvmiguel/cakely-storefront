@@ -76,7 +76,7 @@ export const home = {
       },
       {
         title: "2. CHOOSE A DATE",
-        body: "Let us know your preferred delivery date, and we’ll ensure your cake arrives as fresh as possible — delivered exclusively in Amsterdam",
+        body: "Choose your preferred delivery date at checkout, and we’ll ensure your cake arrives as fresh as possible — delivered exclusively in Amsterdam",
         cta: null,
         image: { base: "step-2", alt: "Planning the delivery date" },
       },

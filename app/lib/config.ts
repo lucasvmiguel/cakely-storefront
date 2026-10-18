@@ -11,3 +11,17 @@ export const MIN_ORDER_AMOUNT = 2000;
 // Tracking ids (public by nature: they are embedded in every page).
 export const DEFAULT_GA_MEASUREMENT_ID = "G-9ZHP15MWQM";
 export const DEFAULT_META_PIXEL_ID = "1161492405801977";
+
+/**
+ * Payment methods offered at checkout. `id` is the store payment provider id
+ * from Hostinger (Store Manager → Settings → Payments; also returned by the
+ * Hostinger API). Only manual methods like Tikkie are supported on-site.
+ */
+export const PAYMENT_METHODS = [
+  {
+    id: "storepp_01M57KPMW5KTHKT2TNHCJK9EQ3",
+    title: "Tikkie",
+    description:
+      "We'll be in touch by email or phone to arrange payment and delivery details. We start preparing your cakes once the Tikkie is paid.",
+  },
+];

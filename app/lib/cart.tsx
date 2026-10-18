@@ -7,8 +7,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { HOSTINGER_API } from "./config";
-import { withCheckoutConsent } from "./consent";
 
 // The basket lives in localStorage and stores only variant ids and quantities.
 // Titles, prices and images always come from the live catalog.
@@ -131,46 +129,4 @@ export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used inside <CartProvider>");
   return ctx;
-}
-
-/**
- * Creates a Hostinger cart with every line and returns the hosted checkout
- * URL to redirect to, plus the cart id. Hostinger collects address, shipping and payment.
- */
-export async function startCheckout(salesChannelId: string, lines: CartLine[]) {
-  const origin = window.location.origin;
-  const res = await fetch(
-    `${HOSTINGER_API}/channels/${salesChannelId}/checkout`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({
-        items: lines.map((l) => ({ variant_id: l.variantId, quantity: l.quantity })),
-        success_url: `${origin}/checkout/success`,
-        cancel_url: `${origin}/cart`,
-        locale: "en",
-        time_zone: "Europe/Amsterdam",
-      }),
-    },
-  );
-  const body = await res.json().catch(() => null);
-  if (!res.ok || !body?.url) {
-    throw new Error(body?.message ?? `Checkout failed (${res.status})`);
-  }
-  return {
-    url: withCheckoutConsent(body.url as string),
-    cartId: cartIdFromToken(body.cart_token) ?? crypto.randomUUID(),
-  };
-}
-
-/** Reads the cart id ("cart_…") from the payload of Hostinger's cart token. */
-function cartIdFromToken(token: unknown) {
-  if (typeof token !== "string") return null;
-  try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const id = JSON.parse(atob(payload))?.cart_id;
-    return typeof id === "string" ? id : null;
-  } catch {
-    return null;
-  }
 }

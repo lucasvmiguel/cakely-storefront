@@ -1,6 +1,6 @@
 import { CheckCircle2, Cookie } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { site } from "~/content/site";
 import { useCart } from "~/lib/cart";
 import { readConsent, saveConsent, type Consent } from "~/lib/consent";
@@ -43,6 +43,8 @@ export function CookieBanner() {
 }
 
 export function InstagramFab() {
+  // Keep the checkout form clear of floating buttons.
+  if (useLocation().pathname === "/checkout") return null;
   return (
     <a
       href={site.socials.instagramDm}

@@ -154,56 +154,20 @@ export const track = {
     meta("InitiateCheckout", { ...totals(items), ...metaContents(items) });
   },
 
-  purchase(order: PendingOrder) {
+  /** `value` and `shipping` are in minor units, from the Hostinger cart. */
+  purchase(order: { id: string; items: Item[]; value: number; shipping: number; coupon?: string }) {
+    const currency = order.items[0]?.product.currency;
+    const value = Number(toDecimal(order.value, currency));
+    const code = (currency?.code ?? "eur").toUpperCase();
     ga("purchase", {
       transaction_id: order.id,
-      value: order.value,
-      currency: order.currency,
-      items: order.gaItems,
+      value,
+      shipping: Number(toDecimal(order.shipping, currency)),
+      currency: code,
+      coupon: order.coupon,
+      items: gaItems(order.items),
     });
-    // eventID lets Meta de-duplicate if the success page is reloaded.
-    meta(
-      "Purchase",
-      { value: order.value, currency: order.currency, ...order.metaContents },
-      { eventID: order.id },
-    );
+    // eventID lets Meta de-duplicate the event.
+    meta("Purchase", { value, currency: code, ...metaContents(order.items) }, { eventID: order.id });
   },
 };
-
-// The order itself is placed on Hostinger's checkout, so we remember what was
-// sent there and report the purchase when the customer returns to
-// /checkout/success.
-const PENDING_KEY = "cakely-pending-order";
-
-export type PendingOrder = {
-  id: string;
-  value: number;
-  currency: string;
-  gaItems: ReturnType<typeof gaItems>;
-  metaContents: ReturnType<typeof metaContents>;
-};
-
-export function rememberPendingOrder(id: string, items: Item[]) {
-  const order: PendingOrder = {
-    id,
-    ...totals(items),
-    gaItems: gaItems(items),
-    metaContents: metaContents(items),
-  };
-  try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify(order));
-  } catch {
-    // ignore
-  }
-}
-
-/** Returns the order sent to checkout (once) and forgets it. */
-export function takePendingOrder(): PendingOrder | null {
-  try {
-    const raw = localStorage.getItem(PENDING_KEY);
-    localStorage.removeItem(PENDING_KEY);
-    return raw ? (JSON.parse(raw) as PendingOrder) : null;
-  } catch {
-    return null;
-  }
-}

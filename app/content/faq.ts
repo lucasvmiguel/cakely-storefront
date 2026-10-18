@@ -17,7 +17,7 @@ export const faq = {
     },
     {
       q: "What time will my order arrive?",
-      a: "Delivery happens between 9:00 AM and 8:00 PM on Fridays and Saturdays. We can’t give a specific time.",
+      a: "Delivery happens between 9:00 AM and 8:00 PM on Saturdays and Sundays. We can’t give a specific time.",
     },
     {
       q: "My order was wrong. What should I do?",

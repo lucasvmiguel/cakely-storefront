@@ -194,7 +194,7 @@ export function llmsTxt(siteUrl: string, products: Product[]) {
     "",
     `> ${site.description}`,
     "",
-    "Cakely sells handmade cakes in a jar, delivered exclusively in Amsterdam (Netherlands). Delivery happens on Fridays and Saturdays; the minimum order is €20. Every page on this site is also available as Markdown by adding `.md` to its URL.",
+    "Cakely sells handmade cakes in a jar, delivered exclusively in Amsterdam (Netherlands). Delivery happens on Saturdays and Sundays; the minimum order is €20. Every page on this site is also available as Markdown by adding `.md` to its URL.",
     "",
     "## Products",
     "",
