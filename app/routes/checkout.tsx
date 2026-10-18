@@ -35,9 +35,8 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 type Form = {
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
   phone: string;
   street: string;
   apartment: string;
@@ -46,9 +45,8 @@ type Form = {
 };
 
 const EMPTY_FORM: Form = {
+  name: "",
   email: "",
-  firstName: "",
-  lastName: "",
   phone: "",
   street: "",
   apartment: "",
@@ -205,8 +203,10 @@ export default function Checkout() {
     try {
       const deliveryLabel = formatDeliveryDate(deliveryDate);
       const address: Address = {
-        first_name: form.firstName.trim(),
-        last_name: form.lastName.trim(),
+        // Hostinger joins first and last name into one "name" on the order, so
+        // the full name goes in first_name.
+        first_name: form.name.trim(),
+        last_name: null,
         phone: form.phone.trim(),
         address_1: form.street.trim(),
         apartment: form.apartment.trim() || undefined,
@@ -265,16 +265,15 @@ export default function Checkout() {
         <form id="checkout" onSubmit={submit} className="space-y-6">
           <Section step={1} title="Contact">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="email" text="Email" type="email" autoComplete="email" value={form.email} onChange={set("email")} className="sm:col-span-2" />
-              <Field id="phone" text="Phone" type="tel" autoComplete="tel" placeholder="+31 6 12345678" value={form.phone} onChange={set("phone")} className="sm:col-span-2" />
+              <Field id="name" text="Full name" autoComplete="name" value={form.name} onChange={set("name")} className="sm:col-span-2" />
+              <Field id="email" text="Email" type="email" autoComplete="email" value={form.email} onChange={set("email")} />
+              <Field id="phone" text="Phone" type="tel" autoComplete="tel" placeholder="+31 6 12345678" value={form.phone} onChange={set("phone")} />
             </div>
             <p className="mt-3 text-xs text-muted-foreground">We'll use these to confirm your order and arrange the delivery.</p>
           </Section>
 
           <Section step={2} title="Delivery address">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="firstName" text="First name" autoComplete="given-name" value={form.firstName} onChange={set("firstName")} />
-              <Field id="lastName" text="Last name" autoComplete="family-name" value={form.lastName} onChange={set("lastName")} />
               <Field id="street" text="Street and house number" autoComplete="address-line1" value={form.street} onChange={set("street")} className="sm:col-span-2" />
               <Field id="apartment" text="Apartment, floor, etc." optional autoComplete="address-line2" value={form.apartment} onChange={set("apartment")} className="sm:col-span-2" />
               <Field

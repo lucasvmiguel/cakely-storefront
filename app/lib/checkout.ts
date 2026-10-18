@@ -22,7 +22,7 @@ export type ShippingOption = { id: string; name: string | null; amount: number |
 
 export type Address = {
   first_name: string;
-  last_name: string;
+  last_name: string | null;
   phone: string;
   address_1: string;
   apartment?: string;
