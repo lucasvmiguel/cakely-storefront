@@ -1,20 +1,12 @@
-import { data } from "react-router";
-import type { Route } from "./+types/policy";
+import type { MetaDescriptor } from "react-router";
 import { Markdown } from "~/components/Markdown";
-import { policies } from "~/content/policies";
+import type { Policy } from "~/content/policies";
 import { breadcrumbLd, pageMeta, siteUrlFrom } from "~/lib/seo";
 
-// One module serves /return-policy, /terms and /privacy (see routes.ts).
-export function loader({ request }: Route.LoaderArgs) {
-  const slug = new URL(request.url).pathname.replace(/^\/|\/$/g, "");
-  const policy = policies[slug];
-  if (!policy) throw data("Not Found", { status: 404 });
-  return { policy };
-}
+// Shared by the /return-policy, /terms and /privacy routes. The content is
+// static (app/content/policies.ts), so those routes need no loader.
 
-export function meta({ matches, loaderData }: Route.MetaArgs) {
-  if (!loaderData) return [];
-  const { policy } = loaderData;
+export function policyMeta(policy: Policy, matches: Parameters<typeof siteUrlFrom>[0]): MetaDescriptor[] {
   const siteUrl = siteUrlFrom(matches);
   return pageMeta({
     siteUrl,
@@ -32,9 +24,7 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
   });
 }
 
-export default function Policy({ loaderData }: Route.ComponentProps) {
-  const { policy } = loaderData;
-
+export function PolicyPage({ policy }: { policy: Policy }) {
   if (policy.layout === "centered") {
     return (
       <section className="container py-16">

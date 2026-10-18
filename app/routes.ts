@@ -8,9 +8,9 @@ export default [
   route("checkout", "routes/checkout.tsx"),
   route("checkout/success", "routes/checkout-success.tsx"),
   route("faq", "routes/faq.tsx"),
-  route("return-policy", "routes/policy.tsx", { id: "return-policy" }),
-  route("terms", "routes/policy.tsx", { id: "terms" }),
-  route("privacy", "routes/policy.tsx", { id: "privacy" }),
+  route("return-policy", "routes/return-policy.tsx"),
+  route("terms", "routes/terms.tsx"),
+  route("privacy", "routes/privacy.tsx"),
 
   // SEO / LLM resources
   route("__md/*", "routes/markdown.ts"),

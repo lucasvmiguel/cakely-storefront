@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function ProductGallery({ images, title }: { images: string[]; title: string }) {
   const [active, setActive] = useState(0);
@@ -86,24 +87,28 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
         )}
       </div>
 
-      {zoom && (
-        <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90" onClick={() => setZoom(false)}>
-          <img src={images[active]} alt={title} className="max-h-[90vh] max-w-[92vw] object-contain" onClick={(e) => e.stopPropagation()} />
-          <button type="button" aria-label="Close" className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
-            <X className="size-5" />
-          </button>
-          {count > 1 && (
-            <>
-              <button type="button" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); go(-1); }} className="absolute left-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
-                <ChevronLeft className="size-5" />
-              </button>
-              <button type="button" aria-label="Next image" onClick={(e) => { e.stopPropagation(); go(1); }} className="absolute right-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
-                <ChevronRight className="size-5" />
-              </button>
-            </>
-          )}
-        </div>
-      )}
+      {/* Rendered on <body>: the gallery column is sticky, which would otherwise
+          trap the viewer underneath the header and the product details. */}
+      {zoom &&
+        createPortal(
+          <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90" onClick={() => setZoom(false)}>
+            <img src={images[active]} alt={title} className="max-h-[90vh] max-w-[92vw] object-contain" onClick={(e) => e.stopPropagation()} />
+            <button type="button" aria-label="Close" className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
+              <X className="size-5" />
+            </button>
+            {count > 1 && (
+              <>
+                <button type="button" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); go(-1); }} className="absolute left-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
+                  <ChevronLeft className="size-5" />
+                </button>
+                <button type="button" aria-label="Next image" onClick={(e) => { e.stopPropagation(); go(1); }} className="absolute right-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
+                  <ChevronRight className="size-5" />
+                </button>
+              </>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

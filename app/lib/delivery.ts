@@ -6,9 +6,9 @@ const TIME_ZONE = "Europe/Amsterdam";
 const DELIVERY_WEEKDAYS = [6, 0]; // Saturday, Sunday
 // Last day (Mon=0 … Sun=6) to order for delivery that same weekend: Wednesday.
 const SAME_WEEK_CUTOFF = 2;
-const WEEKENDS_SHOWN = 6;
+const WEEKENDS_SHOWN = 8;
 
-export type DeliveryDate = { iso: string; weekday: string; label: string };
+export type DeliveryDate = { iso: string };
 
 /** Today's calendar date in Amsterdam, as a UTC-midnight Date for date math. */
 function amsterdamToday(now: Date) {
@@ -38,11 +38,7 @@ export function deliveryDates(now = new Date()): DeliveryDate[] {
       const offset = (day + 6) % 7; // days after Monday
       const date = addDays(firstMonday, week * 7 + offset);
       if (date <= today) continue;
-      dates.push({
-        iso: date.toISOString().slice(0, 10),
-        weekday: date.toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" }),
-        label: date.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }),
-      });
+      dates.push({ iso: date.toISOString().slice(0, 10) });
     }
   }
   return dates;
@@ -62,3 +58,10 @@ export function formatDeliveryDate(iso: string) {
     timeZone: "UTC",
   });
 }
+
+// The calendar works with local-time Dates; noon keeps the calendar day stable
+// in any time zone.
+export const fromIso = (iso: string) => new Date(`${iso}T12:00:00`);
+
+export const toIso = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

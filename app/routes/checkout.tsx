@@ -1,6 +1,7 @@
 import { CalendarDays, Lock, Tag, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
+import { Calendar } from "~/components/Calendar";
 import type { Route } from "./+types/checkout";
 import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
@@ -18,7 +19,7 @@ import {
   type Session,
 } from "~/lib/checkout";
 import { MIN_ORDER_AMOUNT, PAYMENT_METHODS } from "~/lib/config";
-import { deliveryDates, formatDeliveryDate, isValidDeliveryDate } from "~/lib/delivery";
+import { deliveryDates, formatDeliveryDate, fromIso, isValidDeliveryDate, toIso } from "~/lib/delivery";
 import { EUR, formatMoney } from "~/lib/money";
 import { useRootData } from "~/lib/root-data";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
@@ -104,7 +105,8 @@ export default function Checkout() {
   const subtotal = items.reduce((sum, i) => sum + effectivePrice(i.product) * i.line.quantity, 0);
 
   const [form, setForm] = useState<Form>(EMPTY_FORM);
-  const dates = useMemo(() => deliveryDates(), []);
+  const available = useMemo(() => deliveryDates().map((d) => fromIso(d.iso)), []);
+  const availableIsos = useMemo(() => new Set(available.map(toIso)), [available]);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [paymentId, setPaymentId] = useState(PAYMENT_METHODS[0]?.id ?? "");
   const [agreed, setAgreed] = useState(false);
@@ -295,27 +297,31 @@ export default function Checkout() {
               <legend className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarDays className="size-4" /> We deliver on Saturdays and Sundays, between 9:00 and 20:00.
               </legend>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {dates.map((d) => (
-                  <label
-                    key={d.iso}
-                    className={`flex cursor-pointer flex-col items-center rounded-lg border px-2 py-2.5 text-center transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/30 ${
-                      deliveryDate === d.iso ? "border-primary bg-primary text-primary-foreground" : "hover:border-primary/50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="deliveryDate"
-                      value={d.iso}
-                      checked={deliveryDate === d.iso}
-                      onChange={() => setDeliveryDate(d.iso)}
-                      className="sr-only"
-                      required
-                    />
-                    <span className="text-xs font-medium uppercase tracking-wide opacity-80">{d.weekday}</span>
-                    <span className="text-sm font-semibold">{d.label}</span>
-                  </label>
-                ))}
+              <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,320px)_1fr]">
+                <Calendar
+                  mode="single"
+                  weekStartsOn={1}
+                  defaultMonth={available[0]}
+                  startMonth={available[0]}
+                  endMonth={available.at(-1)}
+                  selected={deliveryDate ? fromIso(deliveryDate) : undefined}
+                  onSelect={(day) => setDeliveryDate(day ? toIso(day) : "")}
+                  disabled={(day) => !availableIsos.has(toIso(day))}
+                  modifiers={{ available }}
+                  modifiersClassNames={{ available: "[&>button]:font-semibold [&>button]:text-foreground [&>button]:bg-peach/60" }}
+                  className="w-full rounded-lg border"
+                />
+                <div className="rounded-lg bg-muted px-4 py-3 text-sm" aria-live="polite">
+                  {deliveryDate ? (
+                    <>
+                      <span className="block text-muted-foreground">Your delivery date</span>
+                      <span className="mt-0.5 block font-semibold">{formatDeliveryDate(deliveryDate)}</span>
+                      <span className="mt-0.5 block text-muted-foreground">between 9:00 and 20:00</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">Pick one of the highlighted Saturdays or Sundays.</span>
+                  )}
+                </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
                 Cakes are handmade to order: order by Wednesday for delivery the same weekend.
