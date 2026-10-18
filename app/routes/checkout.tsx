@@ -1,4 +1,4 @@
-import { CalendarDays, Lock, Tag, X } from "lucide-react";
+import { CalendarDays, Lock, MapPin, Tag, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { Calendar } from "~/components/Calendar";
@@ -41,8 +41,10 @@ type Form = {
   street: string;
   apartment: string;
   postalCode: string;
-  city: string;
 };
+
+// We only deliver in Amsterdam, so the city isn't something customers type.
+const DELIVERY_CITY = "Amsterdam";
 
 const EMPTY_FORM: Form = {
   name: "",
@@ -51,7 +53,6 @@ const EMPTY_FORM: Form = {
   street: "",
   apartment: "",
   postalCode: "",
-  city: "Amsterdam",
 };
 
 const input =
@@ -133,7 +134,7 @@ export default function Checkout() {
       try {
         const { session } = await createCart(root.salesChannelId, items.map((i) => i.line));
         // Shipping options depend on the country; we only deliver in the Netherlands.
-        await updateCart(session, { shipping_address: { country_code: "nl", city: "Amsterdam" } });
+        await updateCart(session, { shipping_address: { country_code: "nl", city: DELIVERY_CITY } });
         const options = await shippingOptions(session);
         if (!options.length) throw new Error("No shipping options are available.");
         const cart = await setShippingMethod(session, options[0].id);
@@ -210,7 +211,7 @@ export default function Checkout() {
         phone: form.phone.trim(),
         address_1: form.street.trim(),
         apartment: form.apartment.trim() || undefined,
-        city: form.city.trim(),
+        city: DELIVERY_CITY,
         postal_code: form.postalCode.trim().toUpperCase(),
         country_code: "nl",
       };
@@ -286,7 +287,17 @@ export default function Checkout() {
                 value={form.postalCode}
                 onChange={set("postalCode")}
               />
-              <Field id="city" text="City" autoComplete="address-level2" value={form.city} onChange={set("city")} />
+              <div>
+                <span id="city-label" className={label}>
+                  City
+                </span>
+                <p
+                  aria-labelledby="city-label"
+                  className="flex h-11 items-center gap-2 rounded-md border bg-muted px-3 text-sm text-muted-foreground"
+                >
+                  <MapPin className="size-4 shrink-0" /> {DELIVERY_CITY}
+                </p>
+              </div>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">We deliver exclusively in Amsterdam, Netherlands.</p>
           </Section>
