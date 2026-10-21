@@ -8,6 +8,10 @@ const DELIVERY_WEEKDAYS = [6, 0]; // Saturday, Sunday
 const SAME_WEEK_CUTOFF = 2;
 const WEEKENDS_SHOWN = 8;
 
+// Days from order to the earliest delivery, for structured data: a Wednesday
+// order arrives Saturday (3), a Thursday order the following Saturday (9).
+export const HANDLING_DAYS = { min: 3, max: 9 };
+
 export type DeliveryDate = { iso: string };
 
 /** Today's calendar date in Amsterdam, as a UTC-midnight Date for date math. */
