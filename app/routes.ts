@@ -17,6 +17,7 @@ export default [
   route("llms.txt", "routes/llms-txt.ts"),
   route("robots.txt", "routes/robots-txt.ts"),
   route("sitemap.xml", "routes/sitemap-xml.ts"),
+  route("google-merchant-feed.xml", "routes/google-merchant-feed.ts"),
 
   route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;
