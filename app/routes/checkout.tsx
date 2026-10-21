@@ -237,7 +237,13 @@ export default function Checkout() {
       clear();
       navigate("/checkout/success", {
         replace: true,
-        state: { email: form.email.trim(), deliveryDate: deliveryLabel, total: cart.total },
+        state: {
+          orderId: order.id,
+          email: form.email.trim(),
+          deliveryDate: deliveryLabel,
+          deliveryIso: deliveryDate,
+          total: cart.total,
+        },
       });
     } catch (err) {
       console.error(err);

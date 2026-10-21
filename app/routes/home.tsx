@@ -1,17 +1,20 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
 import { FeatureBanner } from "~/components/FeatureBanner";
+import { GoogleReviews } from "~/components/GoogleReviews";
 import { HeroCarousel } from "~/components/HeroCarousel";
 import { ProductCard } from "~/components/ProductCard";
 import { ResponsiveImage } from "~/components/ResponsiveImage";
 import { home, site } from "~/content/site";
 import { BIRTHDAY_SLUG } from "~/lib/catalog";
+import { getGoogleReviews } from "~/lib/google-reviews.server";
 import { getProducts } from "~/lib/hostinger.server";
 import { organizationLd, pageMeta, siteUrlFrom, websiteLd } from "~/lib/seo";
 
 export async function loader() {
-  const products = await getProducts();
+  const [products, reviews] = await Promise.all([getProducts(), getGoogleReviews()]);
   return {
+    reviews,
     jars: products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.slug !== home.feature.productSlug).slice(0, 4),
     feature: products.find((p) => p.slug === home.feature.productSlug) ?? null,
     birthday: products.find((p) => p.slug === BIRTHDAY_SLUG) ?? null,
@@ -43,7 +46,7 @@ export function meta({ matches }: Route.MetaArgs) {
 const Spacer = ({ h = "h-16" }: { h?: string }) => <div className={h} />;
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { jars, feature, birthday } = loaderData;
+  const { jars, feature, birthday, reviews } = loaderData;
   return (
     <>
       <h1 className="sr-only">Cakely — premium cakes in a jar, handmade in Amsterdam</h1>
@@ -107,6 +110,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
       </section>
       <Spacer />
+
+      {reviews && (
+        <>
+          <GoogleReviews data={reviews} />
+          <Spacer />
+        </>
+      )}
 
       {birthday && (
         <>
