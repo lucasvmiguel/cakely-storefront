@@ -1,7 +1,9 @@
 import { CalendarDays, CircleCheckBig, Mail } from "lucide-react";
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 import type { Route } from "./+types/checkout-success";
 import { site } from "~/content/site";
+import { showSurveyOptIn } from "~/lib/customer-reviews";
 import { formatMoney } from "~/lib/money";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
 
@@ -15,11 +17,24 @@ export function meta({ matches }: Route.MetaArgs) {
   });
 }
 
-type OrderState = { email?: string; deliveryDate?: string; total?: number } | null;
+type OrderState = {
+  orderId?: string;
+  email?: string;
+  deliveryDate?: string;
+  /** Delivery date as YYYY-MM-DD. */
+  deliveryIso?: string;
+  total?: number;
+} | null;
 
 export default function CheckoutSuccess() {
   // Passed by the checkout page; empty if this page is opened directly.
   const order = useLocation().state as OrderState;
+
+  useEffect(() => {
+    if (order?.orderId && order.email && order.deliveryIso) {
+      showSurveyOptIn({ orderId: order.orderId, email: order.email, deliveryDate: order.deliveryIso });
+    }
+  }, [order?.orderId, order?.email, order?.deliveryIso]);
 
   return (
     <section className="container flex min-h-[60vh] max-w-xl flex-col items-center justify-center gap-4 py-16 text-center">

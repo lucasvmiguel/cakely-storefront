@@ -11,6 +11,8 @@ export const MIN_ORDER_AMOUNT = 2000;
 // Tracking ids (public by nature: they are embedded in every page).
 export const DEFAULT_GA_MEASUREMENT_ID = "G-9ZHP15MWQM";
 export const DEFAULT_META_PIXEL_ID = "1161492405801977";
+// Google Merchant Center account, used by the Customer Reviews survey opt-in.
+export const GOOGLE_MERCHANT_ID = 5763775899;
 
 /**
  * Payment methods offered at checkout. `id` is the store payment provider id
