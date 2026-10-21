@@ -20,7 +20,6 @@ import { AddedToast, CookieBanner, InstagramFab } from "./components/Overlays";
 import { site } from "./content/site";
 import { CartProvider } from "./lib/cart";
 import { DEFAULT_GA_MEASUREMENT_ID, DEFAULT_META_PIXEL_ID } from "./lib/config";
-import { isInternalRequest } from "./lib/internal-traffic.server";
 import { siteUrl } from "./lib/site-url.server";
 import { getProducts, SALES_CHANNEL_ID } from "./lib/hostinger.server";
 
@@ -35,7 +34,7 @@ export const links: Route.LinksFunction = () => [
 
 const isProduction = process.env.NODE_ENV === "production";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader() {
   return {
     siteUrl: siteUrl(),
     salesChannelId: SALES_CHANNEL_ID,
@@ -45,7 +44,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     analytics: {
       gaId: process.env.GA_MEASUREMENT_ID ?? (isProduction ? DEFAULT_GA_MEASUREMENT_ID : null),
       pixelId: process.env.META_PIXEL_ID ?? (isProduction ? DEFAULT_META_PIXEL_ID : null),
-      internal: isInternalRequest(request),
     },
     products: await getProducts(),
   };
@@ -82,13 +80,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <InstagramFab />
           <CookieBanner />
           <AddedToast />
-          {data && (
-            <Analytics
-              gaId={data.analytics.gaId || null}
-              pixelId={data.analytics.pixelId || null}
-              internal={data.analytics.internal}
-            />
-          )}
+          {data && <Analytics gaId={data.analytics.gaId || null} pixelId={data.analytics.pixelId || null} />}
         </CartProvider>
         <ScrollRestoration />
         <Scripts />
