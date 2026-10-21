@@ -20,7 +20,8 @@ export const site = {
   logo: "/images/logo.svg",
   favicon: "/favicon.png",
   ogImage: "/images/hero-1.jpg",
-  shippingPrice: 400,
+  // Must match the delivery rate set in Hostinger, which is what checkout charges.
+  shippingPrice: 390,
   socials: {
     instagram: "https://www.instagram.com/trycakely",
     tiktok: "https://www.tiktok.com/@trycakely",
