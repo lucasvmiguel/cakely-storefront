@@ -109,17 +109,13 @@ GA will always count a bit lower than Hostinger, because visitors who decline co
 
 Test orders shouldn't count as sales, so they're sent in debug mode. A **Developer traffic** data filter (GA Admin → Data filters) keeps debug events out of all reports, and they show up live in **DebugView** instead.
 
-Debug mode turns on by itself in two cases:
-- **On a dev server** (`npm run dev`), always.
-- **On the live site, from your own IPs.** Visits from an IP listed in `INTERNAL_IPS` also get `traffic_type=internal`, which the **Internal Traffic** data filter drops, so your own browsing never inflates visitor numbers.
+Debug mode is always on for a dev server (`npm run dev`). On the live site, open any page with `?ga_debug=1`, for example `https://trycakely.com/?ga_debug=1`. It stays on for that browser tab, and `?ga_debug=0` turns it off.
 
-From any other connection, such as mobile data or a friend's Wi-Fi, add `?ga_debug=1` once, for example `https://trycakely.com/?ga_debug=1`. It stays on for that browser tab, and `?ga_debug=0` turns it off.
-
-**When your home IP changes:** search "what is my IP" on Google and put the new address in `INTERNAL_IPS` in the `.env` file next to `docker-compose.yml` on the VPS. You can list several addresses, comma-separated. Then run `docker compose up -d`. This only works if the reverse proxy passes the visitor's IP in `X-Forwarded-For`, which Caddy and Traefik do by default. With Nginx, add `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`.
+**Your own visits** are kept out of the reports by IP, configured in GA rather than in this code: Admin → Data streams → Cakely → Configure tag settings → Show more → **Define internal traffic** (rule "Home"). GA tags those visits `traffic_type=internal`, and the **Internal Traffic** data filter drops them. When your home IP changes, search "what is my IP" on Google and update the address in that rule. No deploy is needed.
 
 To test an order:
 
-1. Make sure debug mode is on, as described above.
+1. Open the site with `?ga_debug=1`.
 2. Accept the cookie banner, then turn off any ad blocker.
 3. Open DebugView in GA. Browse, add to basket, check out and place the order. Each event, ending with `purchase`, appears within a few seconds.
 4. Cancel the test order in Hostinger.
@@ -177,7 +173,6 @@ Put your reverse proxy (Nginx, Caddy, Traefik) in front for HTTPS and forward tr
 | `CATALOG_CACHE_SECONDS` | `60` | How long to cache the catalog in memory |
 | `GA_MEASUREMENT_ID` | `G-9ZHP15MWQM` (production only) | Google Analytics 4. Set to an empty string to turn it off |
 | `META_PIXEL_ID` | `1161492405801977` (production only) | Meta Pixel. Set to an empty string to turn it off |
-| `INTERNAL_IPS` | — | Your own IPs, comma-separated. Their visits are kept out of Google Analytics reports (see "Testing tracking"). Keep it in the VPS `.env`, not in git: the repo is public |
 | `PORT` | `3000` | HTTP port |
 
 If the site ever moves to a different domain, also update the sales channel URL in Hostinger.

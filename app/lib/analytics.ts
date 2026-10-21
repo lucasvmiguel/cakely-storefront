@@ -4,8 +4,7 @@ import { effectivePrice, type Product } from "./catalog";
 import { readConsent } from "./consent";
 import { toDecimal } from "./money";
 
-/** `internal`: the visit comes from one of the owner's IPs (INTERNAL_IPS). */
-export type AnalyticsIds = { gaId: string | null; pixelId: string | null; internal?: boolean };
+export type AnalyticsIds = { gaId: string | null; pixelId: string | null };
 
 type Item = { product: Product; quantity: number };
 
@@ -69,13 +68,8 @@ export function startAnalytics(config: AnalyticsIds) {
     };
     window.gtag("js", new Date());
     // Page views are sent manually on every client-side navigation. Debug mode
-    // shows the events live in GA's DebugView and keeps them out of reports, so
-    // the owner's own visits always use it and test orders need no URL flag.
-    window.gtag("config", ids.gaId, {
-      send_page_view: false,
-      ...((ids.internal || debugMode()) && { debug_mode: true }),
-      ...(ids.internal && { traffic_type: "internal" }),
-    });
+    // shows the events live in GA's DebugView and keeps them out of reports.
+    window.gtag("config", ids.gaId, { send_page_view: false, ...(debugMode() && { debug_mode: true }) });
     loadScript(`https://www.googletagmanager.com/gtag/js?id=${ids.gaId}`);
   }
 
