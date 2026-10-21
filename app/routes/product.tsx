@@ -119,11 +119,14 @@ function sanitize(html: string) {
     .replace(/<p>\s*<\/p>/gi, "");
 }
 
+const RELATED_LIST = "Related products";
+
 export default function ProductPage({ loaderData }: Route.ComponentProps) {
   const { product: p, related } = loaderData;
 
   useEffect(() => {
     track.viewItem(p);
+    track.viewItemList(RELATED_LIST, related);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
 
@@ -190,7 +193,7 @@ export default function ProductPage({ loaderData }: Route.ComponentProps) {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
               {related.map((r, i) => (
                 <div key={r.id} className="animate-fade-up" style={{ animationDelay: `${i * 80}ms` }}>
-                  <ProductCard product={r} />
+                  <ProductCard product={r} listName={RELATED_LIST} />
                 </div>
               ))}
             </div>

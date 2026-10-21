@@ -4,7 +4,8 @@ import { effectivePrice, type Product } from "./catalog";
 import { readConsent } from "./consent";
 import { toDecimal } from "./money";
 
-export type AnalyticsIds = { gaId: string | null; pixelId: string | null };
+/** `internal`: the visit comes from one of the owner's IPs (INTERNAL_IPS). */
+export type AnalyticsIds = { gaId: string | null; pixelId: string | null; internal?: boolean };
 
 type Item = { product: Product; quantity: number };
 
@@ -35,6 +36,24 @@ function loadScript(src: string) {
   document.head.appendChild(s);
 }
 
+const DEBUG_KEY = "cakely-ga-debug";
+
+/**
+ * On in development, or after visiting any page with `?ga_debug=1` (remembered
+ * for the tab, so a whole test order counts; `?ga_debug=0` turns it off).
+ */
+function debugMode() {
+  if (import.meta.env.DEV) return true;
+  try {
+    const param = new URLSearchParams(window.location.search).get("ga_debug");
+    if (param === "1") sessionStorage.setItem(DEBUG_KEY, "1");
+    if (param === "0") sessionStorage.removeItem(DEBUG_KEY);
+    return sessionStorage.getItem(DEBUG_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 /** Loads both trackers. Safe to call more than once. */
 export function startAnalytics(config: AnalyticsIds) {
   if (started || typeof window === "undefined") return;
@@ -49,8 +68,14 @@ export function startAnalytics(config: AnalyticsIds) {
       window.dataLayer!.push(arguments);
     };
     window.gtag("js", new Date());
-    // Page views are sent manually on every client-side navigation.
-    window.gtag("config", ids.gaId, { send_page_view: false });
+    // Page views are sent manually on every client-side navigation. Debug mode
+    // shows the events live in GA's DebugView and keeps them out of reports, so
+    // the owner's own visits always use it and test orders need no URL flag.
+    window.gtag("config", ids.gaId, {
+      send_page_view: false,
+      ...((ids.internal || debugMode()) && { debug_mode: true }),
+      ...(ids.internal && { traffic_type: "internal" }),
+    });
     loadScript(`https://www.googletagmanager.com/gtag/js?id=${ids.gaId}`);
   }
 
@@ -91,13 +116,14 @@ const meta = (event: string, params?: Record<string, unknown>, options?: Record<
 
 const itemId = (p: Product) => p.sku ?? p.id;
 
-function gaItems(items: Item[]) {
+function gaItems(items: Item[], listName?: string) {
   return items.map(({ product: p, quantity }) => ({
     item_id: itemId(p),
     item_name: p.title,
     item_brand: "Cakely",
     item_category: "Cakes in a jar",
     item_variant: p.flavour ?? undefined,
+    item_list_name: listName,
     price: Number(toDecimal(effectivePrice(p), p.currency)),
     quantity,
   }));
@@ -127,15 +153,30 @@ export const track = {
     meta("PageView");
   },
 
+  /** A list of product cards was shown, e.g. "Home" or "Search results". */
+  viewItemList(listName: string, products: Product[]) {
+    if (!products.length) return;
+    const items = products.map((product) => ({ product, quantity: 1 }));
+    ga("view_item_list", {
+      item_list_name: listName,
+      items: gaItems(items, listName).map((item, index) => ({ ...item, index })),
+    });
+  },
+
+  /** A product card in a list was clicked. */
+  selectItem(listName: string, product: Product) {
+    ga("select_item", { item_list_name: listName, items: gaItems([{ product, quantity: 1 }], listName) });
+  },
+
   viewItem(product: Product) {
     const items = [{ product, quantity: 1 }];
     ga("view_item", { ...totals(items), items: gaItems(items) });
     meta("ViewContent", { ...totals(items), ...metaContents(items), content_name: product.title });
   },
 
-  addToCart(product: Product, quantity = 1) {
+  addToCart(product: Product, quantity = 1, listName?: string) {
     const items = [{ product, quantity }];
-    ga("add_to_cart", { ...totals(items), items: gaItems(items) });
+    ga("add_to_cart", { ...totals(items), items: gaItems(items, listName) });
     meta("AddToCart", { ...totals(items), ...metaContents(items), content_name: product.title });
   },
 
@@ -161,6 +202,7 @@ export const track = {
     const code = (currency?.code ?? "eur").toUpperCase();
     ga("purchase", {
       transaction_id: order.id,
+      affiliation: "Cakely online",
       value,
       shipping: Number(toDecimal(order.shipping, currency)),
       currency: code,

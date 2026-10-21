@@ -67,6 +67,8 @@ Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's 
   | Step | GA4 event | Meta event |
   | --- | --- | --- |
   | Page view | `page_view` | `PageView` |
+  | Product cards shown (home, shop, related) | `view_item_list` | — |
+  | Product card clicked | `select_item` | — |
   | Product page | `view_item` | `ViewContent` |
   | Add to basket | `add_to_cart` | `AddToCart` |
   | Basket page | `view_cart` | — |
@@ -74,7 +76,55 @@ Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's 
   | Checkout page opened | `begin_checkout` | `InitiateCheckout` |
   | Order placed | `purchase` | `Purchase` |
 
-  The `purchase` event uses the Hostinger cart id as its transaction id.
+  The `purchase` event uses the Hostinger cart id as its transaction id. List events and `add_to_cart` from a product card carry the list name (`Home`, `Shop all` or `Related products`) in `item_list_name`.
+
+### Where to look in Google Analytics
+
+Open each report at [analytics.google.com](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/intelligenthome) (property **Cakely**). Tracking started on **18 Oct 2026**. Data before that date comes from the previous site and isn't comparable, so pick a date range that starts on or after 18 Oct.
+
+| Report | What it answers | Watch |
+| --- | --- | --- |
+| [**Purchase funnel**](https://analytics.google.com/analytics/web/#/analysis/a389321899p530529858): Explore, then open "Purchase funnel" | Where shoppers drop off: product view → basket → checkout → order, by device | The step with the biggest abandonment rate |
+| [Drive sales → Overview](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/dashboard?params=_u..nav%3Dmaui&ruid=business-objectives-drive-online-sales-overview,business-objectives,drive-online-sales&collectionId=business-objectives&r=business-objectives-drive-online-sales-overview) | How sales are trending | Revenue, purchases, average order value |
+| [Drive sales → Ecommerce purchases](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/explorer?params=_u..nav%3Dmaui&ruid=ecomm-product,business-objectives,drive-online-sales&collectionId=business-objectives&r=ecomm-product) | Which cakes sell and which only get looked at | Items viewed vs added to basket vs purchased, per cake |
+| [Traffic acquisition](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/explorer?params=_u..nav%3Dmaui&ruid=lifecycle-traffic-acquisition-v2,business-objectives,generate-leads&collectionId=business-objectives&r=lifecycle-traffic-acquisition-v2) | Which channels (Instagram, Google, direct) bring visitors and sales | Sessions, key events and revenue per channel |
+| [Landing page](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/explorer?params=_u..nav%3Dmaui&ruid=landing-page,business-objectives,generate-leads&collectionId=business-objectives&r=landing-page) | Which pages people arrive on | Pages with many sessions but few key events |
+| [Pages and screens](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/explorer?params=_u..nav%3Dmaui&r=all-pages-and-screens&ruid=all-pages-and-screens,life-cycle,engagement&collectionId=life-cycle) | What people look at | Views and engagement time per page |
+| [Events](https://analytics.google.com/analytics/web/#/a389321899p530529858/reports/explorer?params=_u..nav%3Dmaui&r=top-events&collectionId=life-cycle) | Is tracking working? | Every funnel event above appears, and `purchase` roughly matches Hostinger's order count |
+| [Realtime](https://analytics.google.com/analytics/web/#/a389321899p530529858/realtime/overview) | Who's on the site right now | — |
+| [DebugView](https://analytics.google.com/analytics/web/#/a389321899p530529858/admin/debugview/overview) | Did my test order get tracked? | See "Testing tracking" below |
+
+The built-in **Purchase journey** report (Drive sales) is a closed funnel. Anyone who adds a cake to the basket straight from a product card, without opening the product page first, falls out of it, so it under-reports purchases. Use the Purchase funnel exploration instead: it's an open funnel, so shoppers can join at any step.
+
+**Weekly check:**
+- Sessions, from Traffic acquisition.
+- Conversion rate: purchases ÷ sessions.
+- Revenue.
+- The biggest drop-off in the Purchase funnel.
+- Whether GA's purchase count matches the orders in Hostinger's Sales tab.
+
+GA will always count a bit lower than Hostinger, because visitors who decline cookies or use an ad blocker aren't tracked.
+
+### Testing tracking
+
+Test orders shouldn't count as sales, so they're sent in debug mode. A **Developer traffic** data filter (GA Admin → Data filters) keeps debug events out of all reports, and they show up live in **DebugView** instead.
+
+Debug mode turns on by itself in two cases:
+- **On a dev server** (`npm run dev`), always.
+- **On the live site, from your own IPs.** Visits from an IP listed in `INTERNAL_IPS` also get `traffic_type=internal`, which the **Internal Traffic** data filter drops, so your own browsing never inflates visitor numbers.
+
+From any other connection, such as mobile data or a friend's Wi-Fi, add `?ga_debug=1` once, for example `https://trycakely.com/?ga_debug=1`. It stays on for that browser tab, and `?ga_debug=0` turns it off.
+
+**When your home IP changes:** search "what is my IP" on Google and put the new address in `INTERNAL_IPS` in the `.env` file next to `docker-compose.yml` on the VPS. You can list several addresses, comma-separated. Then run `docker compose up -d`. This only works if the reverse proxy passes the visitor's IP in `X-Forwarded-For`, which Caddy and Traefik do by default. With Nginx, add `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`.
+
+To test an order:
+
+1. Make sure debug mode is on, as described above.
+2. Accept the cookie banner, then turn off any ad blocker.
+3. Open DebugView in GA. Browse, add to basket, check out and place the order. Each event, ending with `purchase`, appears within a few seconds.
+4. Cancel the test order in Hostinger.
+
+To track from a dev server at all, set `GA_MEASUREMENT_ID` (and `META_PIXEL_ID`). Without them the trackers stay off outside production, so local testing doesn't end up in the live data.
 
 ## Development
 
@@ -125,8 +175,9 @@ Put your reverse proxy (Nginx, Caddy, Traefik) in front for HTTPS and forward tr
 | `SITE_URL` | `https://trycakely.com` | Public origin. Used for canonical URLs, the sitemap and `.md` links |
 | `SALES_CHANNEL_ID` | `scha_01M57MQ3C0DCZN4WGXTYEFQ1BS` | Hostinger custom sales channel |
 | `CATALOG_CACHE_SECONDS` | `60` | How long to cache the catalog in memory |
-| `GA_MEASUREMENT_ID` | `G-9ZHP15MWQM` | Google Analytics 4. Set to an empty string to turn it off |
-| `META_PIXEL_ID` | `1161492405801977` | Meta Pixel. Set to an empty string to turn it off |
+| `GA_MEASUREMENT_ID` | `G-9ZHP15MWQM` (production only) | Google Analytics 4. Set to an empty string to turn it off |
+| `META_PIXEL_ID` | `1161492405801977` (production only) | Meta Pixel. Set to an empty string to turn it off |
+| `INTERNAL_IPS` | — | Your own IPs, comma-separated. Their visits are kept out of Google Analytics reports (see "Testing tracking"). Keep it in the VPS `.env`, not in git: the repo is public |
 | `PORT` | `3000` | HTTP port |
 
 If the site ever moves to a different domain, also update the sales channel URL in Hostinger.
