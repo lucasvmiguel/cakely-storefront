@@ -16,7 +16,7 @@ export function Analytics(ids: AnalyticsIds) {
     };
     window.addEventListener("cakely:consent", onConsent);
     return () => window.removeEventListener("cakely:consent", onConsent);
-  }, [ids.gaId, ids.pixelId]);
+  }, [ids.gaId, ids.pixelId, ids.internal]);
 
   useEffect(() => {
     track.pageView(location.pathname + location.search, document.title);

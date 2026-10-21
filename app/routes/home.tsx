@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
 import { FeatureBanner } from "~/components/FeatureBanner";
@@ -6,6 +7,7 @@ import { HeroCarousel } from "~/components/HeroCarousel";
 import { ProductCard } from "~/components/ProductCard";
 import { ResponsiveImage } from "~/components/ResponsiveImage";
 import { home, site } from "~/content/site";
+import { track } from "~/lib/analytics";
 import { BIRTHDAY_SLUG } from "~/lib/catalog";
 import { getGoogleReviews } from "~/lib/google-reviews.server";
 import { getProducts } from "~/lib/hostinger.server";
@@ -45,8 +47,16 @@ export function meta({ matches }: Route.MetaArgs) {
 
 const Spacer = ({ h = "h-16" }: { h?: string }) => <div className={h} />;
 
+const HOME_LIST = "Home";
+
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { jars, feature, birthday, reviews } = loaderData;
+
+  useEffect(() => {
+    track.viewItemList(HOME_LIST, jars);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
       <h1 className="sr-only">Cakely — premium cakes in a jar, handmade in Amsterdam</h1>
@@ -60,7 +70,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
           {jars.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} listName={HOME_LIST} />
           ))}
         </div>
       </section>

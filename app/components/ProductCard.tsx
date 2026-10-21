@@ -22,10 +22,13 @@ export function AddToBasketButton({
   product,
   size = "default",
   className = "",
+  listName,
 }: {
   product: Product;
   size?: "default" | "lg";
   className?: string;
+  /** The product list this button sits in, for analytics. */
+  listName?: string;
 }) {
   const { add } = useCart();
   return (
@@ -34,7 +37,7 @@ export function AddToBasketButton({
       disabled={!product.available}
       onClick={() => {
         add(product.variantId);
-        track.addToCart(product);
+        track.addToCart(product, 1, listName);
       }}
       className={`relative z-20 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 ${
         size === "lg" ? "h-10" : "h-9"
@@ -46,10 +49,25 @@ export function AddToBasketButton({
   );
 }
 
-export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+export function ProductCard({
+  product,
+  listName,
+  priority = false,
+}: {
+  product: Product;
+  /** The list the card is shown in, e.g. "Home", reported to analytics. */
+  listName: string;
+  priority?: boolean;
+}) {
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-background">
-      <Link to={`/products/${product.slug}`} className="absolute inset-0 z-10" aria-label={product.title} prefetch="intent" />
+      <Link
+        to={`/products/${product.slug}`}
+        onClick={() => track.selectItem(listName, product)}
+        className="absolute inset-0 z-10"
+        aria-label={product.title}
+        prefetch="intent"
+      />
       <div className="skeleton overflow-hidden" style={{ paddingBottom: "78.86%" }}>
         {product.images[0] && (
           <img
@@ -74,7 +92,7 @@ export function ProductCard({ product, priority = false }: { product: Product; p
         </div>
       </div>
       <div className="px-4 pb-4">
-        <AddToBasketButton product={product} />
+        <AddToBasketButton product={product} listName={listName} />
       </div>
     </div>
   );

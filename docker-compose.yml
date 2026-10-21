@@ -14,3 +14,6 @@ services:
       CATALOG_CACHE_SECONDS: "60"
       GA_MEASUREMENT_ID: G-9ZHP15MWQM
       META_PIXEL_ID: "1161492405801977"
+      # Your own IPs, comma-separated, kept out of Google Analytics. Set it in a
+      # `.env` file next to this one on the VPS (INTERNAL_IPS=1.2.3.4).
+      INTERNAL_IPS: ${INTERNAL_IPS:-}

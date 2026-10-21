@@ -64,6 +64,8 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
   });
 }
 
+const SEARCH_LIST = "Shop all";
+
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <details open className="group border-b py-4">
@@ -84,6 +86,13 @@ export default function Search({ loaderData }: Route.ComponentProps) {
   useEffect(() => {
     if (filters.q) track.search(filters.q);
   }, [filters.q]);
+
+  // Re-sent when the results change, e.g. after filtering.
+  const resultIds = results.map((p) => p.id).join(",");
+  useEffect(() => {
+    track.viewItemList(SEARCH_LIST, results);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultIds]);
 
   const filtersForm = (
     <Form method="get" onChange={(e) => submit(e.currentTarget, { preventScrollReset: true, replace: true })}>
@@ -179,7 +188,7 @@ export default function Search({ loaderData }: Route.ComponentProps) {
             {results.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-3">
                 {results.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                  <ProductCard key={p.id} product={p} listName={SEARCH_LIST} />
                 ))}
               </div>
             ) : (
