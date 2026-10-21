@@ -8,7 +8,8 @@ import { ProductGallery } from "~/components/ProductGallery";
 import { site } from "~/content/site";
 import { effectivePrice, htmlToText } from "~/lib/catalog";
 import { getProductBySlug, getRelated } from "~/lib/hostinger.server";
-import { formatMoney, toDecimal } from "~/lib/money";
+import { HANDLING_DAYS } from "~/lib/delivery";
+import { EUR, formatMoney, toDecimal } from "~/lib/money";
 import { absolute, breadcrumbLd, pageMeta, siteUrlFrom } from "~/lib/seo";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -57,8 +58,19 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
         : {}),
       shippingDetails: {
         "@type": "OfferShippingDetails",
-        shippingRate: { "@type": "MonetaryAmount", value: toDecimal(site.shippingPrice), currency: "EUR" },
-        shippingDestination: { "@type": "DefinedRegion", addressCountry: "NL", addressRegion: "Amsterdam" },
+        shippingRate: { "@type": "MonetaryAmount", value: toDecimal(site.shippingPrice, EUR), currency: "EUR" },
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "NL" },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: HANDLING_DAYS.min,
+            maxValue: HANDLING_DAYS.max,
+            unitCode: "DAY",
+          },
+          // Same-day local delivery once the cakes leave the kitchen.
+          transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+        },
       },
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
