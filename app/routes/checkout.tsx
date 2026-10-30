@@ -19,6 +19,7 @@ import {
   type HostingerCart,
   type Session,
 } from "~/lib/checkout";
+import { clearDraft, readDraft, saveDraft } from "~/lib/checkout-draft";
 import { MIN_ORDER_AMOUNT, PAYMENT_METHODS } from "~/lib/config";
 import { deliveryDates, formatDeliveryDate, fromIso, isValidDeliveryDate, toIso } from "~/lib/delivery";
 import { EUR, formatMoney } from "~/lib/money";
@@ -54,6 +55,14 @@ const EMPTY_FORM: Form = {
   street: "",
   apartment: "",
   postalCode: "",
+};
+
+const codesOf = (cart: HostingerCart) =>
+  (cart.discounts ?? []).map((d) => d.code).filter((c): c is string => !!c);
+
+const savedCodes = () => {
+  const codes = readDraft()?.codes;
+  return Array.isArray(codes) ? codes.filter((c): c is string => typeof c === "string" && !!c) : [];
 };
 
 const input =
@@ -131,6 +140,31 @@ export default function Checkout() {
   const linesKey = JSON.stringify(items.map((i) => i.line));
   const cartLinesKey = useRef<string | null>(null);
 
+  // Bring back what was filled in before a refresh, then keep it saved.
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    const draft = readDraft();
+    const saved: Partial<Record<keyof Form, unknown>> = draft?.form ?? {};
+    setForm((f) => {
+      const next = { ...f };
+      for (const key of Object.keys(EMPTY_FORM) as (keyof Form)[]) {
+        if (typeof saved[key] === "string") next[key] = saved[key];
+      }
+      return next;
+    });
+    if (typeof draft?.deliveryDate === "string" && isValidDeliveryDate(draft.deliveryDate)) {
+      setDeliveryDate(draft.deliveryDate);
+    }
+    setRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!restored || placed.current) return;
+    // Until the Hostinger cart is ready, keep the codes saved earlier: they're
+    // applied again once it is.
+    saveDraft({ form, deliveryDate, codes: hCart ? codesOf(hCart) : savedCodes() });
+  }, [restored, form, deliveryDate, hCart]);
+
   useEffect(() => {
     if (!ready || !root || started.current || !items.length || subtotal < MIN_ORDER_AMOUNT) return;
     started.current = true;
@@ -143,7 +177,15 @@ export default function Checkout() {
         await updateCart(session, { shipping_address: { country_code: "nl", city: DELIVERY_CITY } });
         const options = await shippingOptions(session);
         if (!options.length) throw new Error("No shipping options are available.");
-        const cart = await setShippingMethod(session, options[0].id);
+        let cart = await setShippingMethod(session, options[0].id);
+        const codes = savedCodes();
+        if (codes.length) {
+          try {
+            cart = await setDiscountCodes(session, codes);
+          } catch {
+            setCodeError("We couldn't apply your discount code again. Please enter it once more.");
+          }
+        }
         setSession(session);
         setShippingOptionId(options[0].id);
         setHCart(cart);
@@ -160,7 +202,7 @@ export default function Checkout() {
   const set = (key: keyof Form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const appliedCodes = (hCart?.discounts ?? []).map((d) => d.code).filter((c): c is string => !!c);
+  const appliedCodes = hCart ? codesOf(hCart) : [];
   const shipping = hCart?.shipping_total ?? null;
   const discount = hCart?.discount_total ?? 0;
   const total = hCart ? hCart.total : null;
@@ -236,6 +278,7 @@ export default function Checkout() {
       const order = await placeOrder(session, paymentId);
 
       placed.current = true;
+      clearDraft();
       track.purchase({
         id: order.id,
         items: items.map((i) => ({ product: i.product, quantity: i.line.quantity })),
