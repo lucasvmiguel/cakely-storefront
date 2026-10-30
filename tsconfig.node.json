@@ -1,13 +1,26 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["server.js", "vite.config.ts"],
+  "include": [
+    "server.js",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "e2e/**/*",
+    "app/lib/config.ts"
+  ],
   "compilerOptions": {
     "composite": true,
     "strict": true,
-    "types": ["node"],
-    "lib": ["ES2022"],
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "target": "ES2022",
     "module": "ES2022",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true
   }
 }
