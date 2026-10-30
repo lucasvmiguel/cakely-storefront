@@ -110,12 +110,21 @@ function metaDescription(text: string) {
   return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
 }
 
-/** Only allow the handful of tags Hostinger's editor produces. */
+const ALLOWED_TAGS = new Set(["p", "br", "strong", "b", "em", "i", "u", "ul", "ol", "li", "h2", "h3", "h4", "span"]);
+
+/**
+ * Only allow the handful of tags Hostinger's editor produces. Allowed tags are
+ * rebuilt without any attributes, so no event handler or URL can get through.
+ */
 function sanitize(html: string) {
   return html
     .replace(/<(script|style|iframe|object|embed)[\s\S]*?<\/\1>/gi, "")
-    .replace(/<(?!\/?(p|br|strong|b|em|i|u|ul|ol|li|h[2-4]|span)\b)[^>]*>/gi, "")
-    .replace(/\s(on\w+|style|class)="[^"]*"/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<(\/?)([a-z][a-z0-9]*)\b[^>]*>/gi, (_, slash: string, name: string) =>
+      ALLOWED_TAGS.has(name.toLowerCase()) ? `<${slash}${name.toLowerCase()}>` : "",
+    )
+    // Any "<" left over isn't one of the tags above: show it as text.
+    .replace(/<(?!\/?[a-z0-9]+>)/gi, "&lt;")
     .replace(/<p>\s*<\/p>/gi, "");
 }
 

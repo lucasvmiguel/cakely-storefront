@@ -126,10 +126,15 @@ export default function Checkout() {
   const [error, setError] = useState<string | null>(null);
   const placed = useRef(false);
   const started = useRef(false);
+  // The basket the Hostinger cart was created from. The basket syncs across
+  // tabs, so it can change after that; the order must not go out stale.
+  const linesKey = JSON.stringify(items.map((i) => i.line));
+  const cartLinesKey = useRef<string | null>(null);
 
   useEffect(() => {
     if (!ready || !root || started.current || !items.length || subtotal < MIN_ORDER_AMOUNT) return;
     started.current = true;
+    cartLinesKey.current = linesKey;
     track.beginCheckout(items.map((i) => ({ product: i.product, quantity: i.line.quantity })));
     (async () => {
       try {
@@ -195,6 +200,10 @@ export default function Checkout() {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!session || !shippingOptionId || submitting) return;
+    if (linesKey !== cartLinesKey.current) {
+      setError("Your basket changed since you opened the checkout. Please refresh the page to check your order.");
+      return;
+    }
     if (!isValidDeliveryDate(deliveryDate)) {
       setError("Please choose a delivery date.");
       document.getElementById("delivery-date")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -230,7 +239,8 @@ export default function Checkout() {
       track.purchase({
         id: order.id,
         items: items.map((i) => ({ product: i.product, quantity: i.line.quantity })),
-        value: cart.total - cart.shipping_total,
+        // GA4 revenue is `value` alone, so it must include delivery.
+        value: cart.total,
         shipping: cart.shipping_total,
         coupon: appliedCodes.join(",") || undefined,
       });
