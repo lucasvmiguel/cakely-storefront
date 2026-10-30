@@ -10,11 +10,14 @@ export const SALES_CHANNEL_ID =
 
 const CACHE_TTL_MS = Number(process.env.CATALOG_CACHE_SECONDS ?? 60) * 1000;
 
+// Only the end-to-end tests set this, to read the catalog from a fake API.
+const CATALOG_API = process.env.HOSTINGER_API_URL || HOSTINGER_API;
+
 let cache: { at: number; products: Product[] } | null = null;
 let inflight: Promise<Product[]> | null = null;
 
 async function fetchProducts(): Promise<Product[]> {
-  const url = `${HOSTINGER_API}/channels/${SALES_CHANNEL_ID}/products?limit=100&sort_by=order&order=ASC`;
+  const url = `${CATALOG_API}/channels/${SALES_CHANNEL_ID}/products?limit=100&sort_by=order&order=ASC`;
   const res = await fetch(url, { headers: { accept: "application/json" } });
   if (!res.ok) {
     throw new Error(`Hostinger catalog request failed: ${res.status}`);

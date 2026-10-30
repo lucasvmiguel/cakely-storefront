@@ -189,7 +189,10 @@ export const track = {
     meta("InitiateCheckout", { ...totals(items), ...metaContents(items) });
   },
 
-  /** `value` and `shipping` are in minor units, from the Hostinger cart. */
+  /**
+   * `value` (the order total, delivery included) and `shipping` are in minor
+   * units, from the Hostinger cart.
+   */
   purchase(order: { id: string; items: Item[]; value: number; shipping: number; coupon?: string }) {
     const currency = order.items[0]?.product.currency;
     const value = Number(toDecimal(order.value, currency));

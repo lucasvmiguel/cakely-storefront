@@ -88,7 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 : l,
             );
           }
-          return [...prev, { variantId, quantity }];
+          return [...prev, { variantId, quantity: Math.min(MAX_QTY, quantity) }];
         });
         setLastAdded({ variantId, at: Date.now() });
       },

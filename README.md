@@ -128,7 +128,20 @@ To track from a dev server at all, set `GA_MEASUREMENT_ID` (and `META_PIXEL_ID`)
 npm install
 npm run dev        # http://localhost:3000
 npm run typecheck
+npm run test:e2e   # end-to-end tests (first time: npx playwright install chromium)
 ```
+
+## Testing
+
+`npm run test:e2e` runs Playwright tests in a real browser against a production build. They never touch the real store: the Hostinger API is replaced by fakes in `e2e/` (`fake-catalog-server.js` for the server's catalog, `fake-hostinger.ts` for the checkout), using the test catalog in `e2e/fixtures/catalog.json`. The date is fixed to a Monday, so delivery dates are predictable.
+
+- **`purchase.spec.ts`**: the whole purchase flow, from a product page to an order, and checks the order Hostinger would receive (items, address, delivery date, payment method, total). Also covers sale prices, discount codes, the €20 minimum, sold-out jars, missing details, the Thursday cutoff, refreshing mid-checkout, a basket changed in another tab, and a failed order. Tests tagged `@purchase` also run on a phone-sized screen.
+- **`analytics.spec.ts`**: what goes to Google Analytics, with and without cookie consent.
+- **`site.spec.ts`**: pages load, plus the sitemap, Merchant feed, Markdown twins and security fixes.
+
+They run in GitHub Actions on every pull request and push. If they fail, no Docker image is published, and the HTML report is attached to the run. To watch them in a browser locally, run `npx playwright test --ui`.
+
+**Checkout details survive a refresh.** What a customer fills in at checkout (details, delivery date, discount codes) is kept in the tab's `sessionStorage` (`app/lib/checkout-draft.ts`). It's deleted when the order is placed, and ignored and deleted after 2 hours. The terms checkbox isn't kept.
 
 ## Docker (VPS deployment)
 

@@ -1,0 +1,104 @@
+{
+  "data": [
+    {
+      "id": "prod_choco",
+      "title": "Chocofudge Brigadeiro",
+      "subtitle": "Rich chocolate cake in a jar",
+      "description": "<p>Chocolate cake with brigadeiro.</p>",
+      "thumbnail": null,
+      "slug": "chocofudge-brigadeiro",
+      "updated_at": "2026-10-20T10:00:00Z",
+      "is_available": true,
+      "purchasable": true,
+      "images": [{ "url": "https://cdn.zyrosite.com/test/choco.jpg", "order": 1, "type": "image" }],
+      "variants": [
+        {
+          "id": "var_choco",
+          "sku": "1001",
+          "is_available": true,
+          "prices": [{ "amount": 650, "sale_amount": null, "currency": { "code": "eur", "symbol": "€", "decimal_digits": 2, "template": "€$1" } }]
+        }
+      ]
+    },
+    {
+      "id": "prod_coconut",
+      "title": "Coconut",
+      "subtitle": "Creamy coconut cake in a jar",
+      "description": "<p class=\"x\">Creamy coconut.</p><p><span onmouseover=window.__xss=1>hover</span> <b onclick='window.__xss=1'>bold</b></p><p/onmouseover=\"window.__xss=1\">slash</p><img src=x onerror=\"window.__xss=1\">",
+      "thumbnail": null,
+      "slug": "coconut",
+      "updated_at": "2026-10-21T10:00:00Z",
+      "is_available": true,
+      "purchasable": true,
+      "images": [{ "url": "https://cdn.zyrosite.com/test/coconut.jpg", "order": 1, "type": "image" }],
+      "variants": [
+        {
+          "id": "var_coconut",
+          "sku": "1002",
+          "is_available": true,
+          "prices": [{ "amount": 650, "sale_amount": null, "currency": { "code": "eur", "symbol": "€", "decimal_digits": 2, "template": "€$1" } }]
+        }
+      ]
+    },
+    {
+      "id": "prod_cookies",
+      "title": "Cookies & Cream",
+      "subtitle": "Sold out in the tests",
+      "description": "<p>Cookies and cream.</p>",
+      "thumbnail": null,
+      "slug": "cookies-cream",
+      "updated_at": "2026-10-19T10:00:00Z",
+      "is_available": true,
+      "purchasable": true,
+      "images": [],
+      "variants": [
+        {
+          "id": "var_cookies",
+          "sku": "1003",
+          "is_available": false,
+          "prices": [{ "amount": 650, "sale_amount": null, "currency": { "code": "eur", "symbol": "€", "decimal_digits": 2, "template": "€$1" } }]
+        }
+      ]
+    },
+    {
+      "id": "prod_lemon",
+      "title": "Lemon",
+      "subtitle": "Zesty lemon cake in a jar, on sale",
+      "description": "<p>Lemon cake.</p>",
+      "thumbnail": null,
+      "slug": "lemon",
+      "updated_at": "2026-10-18T10:00:00Z",
+      "is_available": true,
+      "purchasable": true,
+      "images": [],
+      "variants": [
+        {
+          "id": "var_lemon",
+          "sku": "1005",
+          "is_available": true,
+          "prices": [{ "amount": 650, "sale_amount": 550, "currency": { "code": "eur", "symbol": "€", "decimal_digits": 2, "template": "€$1" } }]
+        }
+      ]
+    },
+    {
+      "id": "prod_birthday",
+      "title": "Birthday Special",
+      "subtitle": "A box of jars for a birthday",
+      "description": "<p>Birthday box.</p>",
+      "thumbnail": null,
+      "slug": "birthday-special",
+      "updated_at": "2026-10-17T10:00:00Z",
+      "is_available": true,
+      "purchasable": true,
+      "images": [],
+      "variants": [
+        {
+          "id": "var_birthday",
+          "sku": "1007",
+          "is_available": true,
+          "prices": [{ "amount": 5000, "sale_amount": null, "currency": { "code": "eur", "symbol": "€", "decimal_digits": 2, "template": "€$1" } }]
+        }
+      ]
+    }
+  ]
+}

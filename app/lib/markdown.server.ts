@@ -145,8 +145,9 @@ export function faqMarkdown(siteUrl: string) {
 }
 
 export function policyMarkdown(siteUrl: string, slug: string) {
+  // Own keys only: "/constructor.md" or "/__proto__.md" must 404, not crash.
+  if (!Object.hasOwn(policies, slug)) return null;
   const p = policies[slug];
-  if (!p) return null;
   return [
     `# ${p.title} — ${site.name}`,
     "",

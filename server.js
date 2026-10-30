@@ -11,6 +11,14 @@ const app = express();
 
 app.use(compression());
 app.disable("x-powered-by");
+app.use((_req, res, next) => {
+  res.set({
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+  });
+  next();
+});
 
 if (DEVELOPMENT) {
   console.log("Starting development server");

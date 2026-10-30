@@ -29,8 +29,30 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
 
+  # The purchase flow and the rest of the site, in a real browser against a
+  # fake Hostinger API (see e2e/). No image is published if these fail.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
   image:
-    needs: check
+    needs: [check, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: read
