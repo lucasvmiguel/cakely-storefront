@@ -19,5 +19,9 @@ export default [
   route("sitemap.xml", "routes/sitemap-xml.ts"),
   route("google-merchant-feed.xml", "routes/google-merchant-feed.ts"),
 
+  // Owner-only form for entering orders by hand. It exists only on the local
+  // dev server (`npm run dev`) and is left out of the production build.
+  ...(process.env.NODE_ENV === "development" ? [route("manual-order", "routes/manual-order.tsx")] : []),
+
   route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;
