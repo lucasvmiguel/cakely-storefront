@@ -57,6 +57,11 @@ The checkout page runs these steps against the Hostinger Storefront API, all fro
 
 **€20 minimum.** `/checkout` sends the customer back to the basket when the basket is below the minimum.
 
+**Manual orders** (`app/routes/manual-order.tsx`). For orders that come in by phone or message: run `npm run dev` and open `http://localhost:3000/manual-order`. Pick products and quantities, enter the customer and address, any delivery date (with an optional time or note), and an optional discount code. The order goes through the same Hostinger steps as the checkout, without the €20 minimum or the weekend-only dates.
+- The page only exists on the dev server. `app/routes.ts` leaves it out of production builds.
+- Hostinger sends its usual order emails to the email you enter. Use your own address if the customer shouldn't get them.
+- Prices come from the Hostinger catalog. To charge a different amount, use a discount code.
+
 ## Analytics
 
 Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's docs say: "Sales channels such as TikTok Shop, Meta, and custom channels don't share traffic data with the Traffic tab." Orders still appear in Hostinger's Sales tab. Visitor tracking comes from two separate tools:
