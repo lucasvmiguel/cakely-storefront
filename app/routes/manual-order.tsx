@@ -8,6 +8,7 @@ import { data } from "react-router";
 import { Calendar } from "~/components/Calendar";
 import { effectivePrice } from "~/lib/catalog";
 import {
+  CheckoutError,
   createCart,
   placeOrder,
   setDiscountCodes,
@@ -130,6 +131,48 @@ export default function ManualOrder() {
     .filter((p) => (quantities[p.variantId] ?? 0) > 0)
     .map((p) => ({ product: p, quantity: quantities[p.variantId] }));
   const subtotal = lines.reduce((sum, l) => sum + effectivePrice(l.product) * l.quantity, 0);
+  const shipping = options?.find((o) => o.id === shippingId)?.amount ?? 0;
+  const code = form.code.trim().toUpperCase();
+
+  // Only Hostinger knows what a discount code takes off, so "Apply" prices the
+  // order in a throwaway cart. The result holds while the products, shipping
+  // and code stay the same.
+  const quoteKey = JSON.stringify([lines.map((l) => [l.product.variantId, l.quantity]), shippingId, code]);
+  const [quote, setQuote] = useState<{ key: string; discount: number; total: number } | null>(null);
+  const [quoteStatus, setQuoteStatus] = useState<"idle" | "loading">("idle");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const quoted = !!code && quote?.key === quoteKey;
+  const discount = quoted ? quote.discount : 0;
+  // null while a code is entered but not applied yet.
+  const total = !code ? subtotal + shipping : quoted ? quote.total : null;
+
+  async function applyCode() {
+    if (!root || !code) return;
+    if (!lines.length) return setCodeError("Add the products first: the discount depends on them.");
+    if (!shippingId) return setCodeError("Choose a shipping option first.");
+    setQuoteStatus("loading");
+    setCodeError(null);
+    try {
+      const { session } = await createCart(
+        root.salesChannelId,
+        lines.map((l) => ({ variantId: l.product.variantId, quantity: l.quantity })),
+        root.siteUrl,
+      );
+      await updateCart(session, { shipping_address: { country_code: "nl", city: form.city.trim() || EMPTY_FORM.city } });
+      await setShippingMethod(session, shippingId);
+      const cart = await setDiscountCodes(session, [code]);
+      setQuote({ key: quoteKey, discount: cart.discount_total, total: cart.total });
+    } catch (err) {
+      console.error(err);
+      setCodeError(
+        err instanceof CheckoutError && err.status === 404
+          ? `${code} isn't a valid code.`
+          : "Couldn't check the code right now. Try again.",
+      );
+    } finally {
+      setQuoteStatus("idle");
+    }
+  }
 
   const set = (key: keyof Form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -140,6 +183,8 @@ export default function ManualOrder() {
     setQuantities({});
     setForm(EMPTY_FORM);
     setDeliveryDate("");
+    setQuote(null);
+    setCodeError(null);
     setError(null);
     setPlaced(null);
   }
@@ -150,6 +195,7 @@ export default function ManualOrder() {
     if (!lines.length) return setError("Add at least one product.");
     if (!deliveryDate) return setError("Choose a delivery date.");
     if (!shippingId) return setError("Choose a shipping option.");
+    if (total == null) return setError("Apply the discount code first, so you can check the total.");
     setSubmitting(true);
     setError(null);
     let step = "create the cart";
@@ -188,12 +234,17 @@ export default function ManualOrder() {
         throw new Error(`${chosen} isn't available for this order and address`);
       }
       let cart = await setShippingMethod(session, shippingId);
-      const code = form.code.trim().toUpperCase();
       if (code) {
         step = `apply the discount code ${code}`;
         cart = await setDiscountCodes(session, [code]);
       }
       step = "place the order";
+      // Never place an order for a different amount than the one on screen.
+      if (cart.total !== total) {
+        throw new Error(
+          `Hostinger priced it at ${formatMoney(cart.total, currency)}, not ${formatMoney(total, currency)} as shown. Check the products and code`,
+        );
+      }
       const order = await placeOrder(session, paymentId);
       setPlaced({ orderId: order.id, name: address.first_name, total: cart.total, deliveryLabel });
       window.scrollTo({ top: 0 });
@@ -385,16 +436,60 @@ export default function ManualOrder() {
                 ))}
               </select>
             </div>
-            <Field
-              id="code"
-              text="Discount code"
-              optional
-              autoComplete="off"
-              value={form.code}
-              onChange={set("code")}
-              className="[&_input]:uppercase"
-            />
+            <div>
+              <label htmlFor="code" className={label}>
+                Discount code <span className="font-normal text-muted-foreground">(optional)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="code"
+                  name="code"
+                  autoComplete="off"
+                  value={form.code}
+                  onChange={set("code")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void applyCode();
+                    }
+                  }}
+                  className={`${input} uppercase`}
+                />
+                <button
+                  type="button"
+                  onClick={applyCode}
+                  disabled={!code || quoted || quoteStatus === "loading"}
+                  className="h-11 shrink-0 rounded-md border px-4 text-sm font-medium hover:bg-muted disabled:opacity-50"
+                >
+                  {quoteStatus === "loading" ? "…" : quoted ? "Applied" : "Apply"}
+                </button>
+              </div>
+              {codeError && <p className="mt-1.5 text-sm text-red-600">{codeError}</p>}
+            </div>
           </div>
+        </Section>
+
+        <Section title="Total">
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Products</dt>
+              <dd>{formatMoney(subtotal, currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Shipping</dt>
+              <dd>{!options ? "…" : shipping === 0 ? "Free" : formatMoney(shipping, currency)}</dd>
+            </div>
+            {code && (
+              <div className={`flex justify-between ${quoted ? "text-green-700" : "text-muted-foreground"}`}>
+                <dt>Discount ({code})</dt>
+                <dd>{quoted ? `−${formatMoney(discount, currency)}` : "Press Apply"}</dd>
+              </div>
+            )}
+          </dl>
+          <p className="mt-3 flex justify-between border-t pt-3 text-lg font-semibold">
+            <span>Total</span>
+            <span>{total == null ? "—" : formatMoney(total, currency)}</span>
+          </p>
         </Section>
 
         {error && (
@@ -408,7 +503,11 @@ export default function ManualOrder() {
           disabled={!root || submitting}
           className="inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? "Placing the order…" : "Place order in Hostinger"}
+          {submitting
+            ? "Placing the order…"
+            : total != null && lines.length
+              ? `Place order in Hostinger · ${formatMoney(total, currency)}`
+              : "Place order in Hostinger"}
         </button>
       </form>
     </section>
