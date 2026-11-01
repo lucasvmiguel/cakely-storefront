@@ -58,8 +58,11 @@ async function call<T>(url: string, init: RequestInit & { token?: string } = {})
 
 export type Session = { cartId: string; token: string };
 
-export async function createCart(salesChannelId: string, lines: CartLine[]) {
-  const origin = window.location.origin;
+/**
+ * `origin` is where Hostinger would send the customer back to. It must be
+ * https, so pages that run on the local dev server pass the live site's URL.
+ */
+export async function createCart(salesChannelId: string, lines: CartLine[], origin = window.location.origin) {
   const body = await call<{ data: HostingerCart; cart_token: string }>(
     `${HOSTINGER_API}/channels/${salesChannelId}/carts`,
     {

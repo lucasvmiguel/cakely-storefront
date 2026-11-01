@@ -3,7 +3,7 @@
 // without the basket, the €20 minimum or the weekend-only delivery dates.
 // The route only exists on the local dev server (see app/routes.ts).
 import { CalendarDays, CircleCheckBig, Minus, Plus } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { data } from "react-router";
 import { Calendar } from "~/components/Calendar";
 import { effectivePrice } from "~/lib/catalog";
@@ -15,6 +15,7 @@ import {
   shippingOptions,
   updateCart,
   type Address,
+  type ShippingOption,
 } from "~/lib/checkout";
 import { PAYMENT_METHODS } from "~/lib/config";
 import { formatDeliveryDate, fromIso, toIso } from "~/lib/delivery";
@@ -100,6 +101,30 @@ export default function ManualOrder() {
   const [error, setError] = useState<string | null>(null);
   const [placed, setPlaced] = useState<Placed | null>(null);
 
+  // Hostinger only lists shipping options for a cart, so open a throwaway one
+  // (like the checkout does when it opens) just to read them.
+  const [options, setOptions] = useState<ShippingOption[] | null>(null);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [shippingId, setShippingId] = useState("");
+  const optionsStarted = useRef(false);
+  useEffect(() => {
+    const sample = products.find((p) => p.available) ?? products[0];
+    if (!root || !sample || optionsStarted.current) return;
+    optionsStarted.current = true;
+    (async () => {
+      try {
+        const { session } = await createCart(root.salesChannelId, [{ variantId: sample.variantId, quantity: 1 }], root.siteUrl);
+        await updateCart(session, { shipping_address: { country_code: "nl", city: EMPTY_FORM.city } });
+        const list = await shippingOptions(session);
+        setOptions(list);
+        setShippingId(list[0]?.id ?? "");
+      } catch (err) {
+        console.error(err);
+        setOptionsError("Couldn't load the shipping options. Refresh the page to try again.");
+      }
+    })();
+  });
+
   const today = useMemo(() => fromIso(toIso(new Date())), []);
   const lines = products
     .filter((p) => (quantities[p.variantId] ?? 0) > 0)
@@ -124,6 +149,7 @@ export default function ManualOrder() {
     if (!root || submitting) return;
     if (!lines.length) return setError("Add at least one product.");
     if (!deliveryDate) return setError("Choose a delivery date.");
+    if (!shippingId) return setError("Choose a shipping option.");
     setSubmitting(true);
     setError(null);
     let step = "create the cart";
@@ -131,6 +157,7 @@ export default function ManualOrder() {
       const { session } = await createCart(
         root.salesChannelId,
         lines.map((l) => ({ variantId: l.product.variantId, quantity: l.quantity })),
+        root.siteUrl,
       );
       const deliveryLabel = formatDeliveryDate(deliveryDate);
       const note = form.note.trim();
@@ -153,9 +180,14 @@ export default function ManualOrder() {
         billing_address: address,
       });
       step = "set the delivery method";
-      const options = await shippingOptions(session);
-      if (!options.length) throw new Error("No shipping options are available.");
-      let cart = await setShippingMethod(session, options[0].id);
+      // The options can depend on the cart and address, so check the chosen
+      // one is still offered for this order.
+      const offered = await shippingOptions(session);
+      if (!offered.some((o) => o.id === shippingId)) {
+        const chosen = options?.find((o) => o.id === shippingId)?.name ?? "The chosen option";
+        throw new Error(`${chosen} isn't available for this order and address`);
+      }
+      let cart = await setShippingMethod(session, shippingId);
       const code = form.code.trim().toUpperCase();
       if (code) {
         step = `apply the discount code ${code}`;
@@ -304,6 +336,39 @@ export default function ManualOrder() {
               <Field id="note" text="Time or note" optional placeholder="e.g. 14:00–16:00" value={form.note} onChange={set("note")} />
             </div>
           </div>
+        </Section>
+
+        <Section title="Shipping">
+          {optionsError ? (
+            <p className="text-sm text-red-600">{optionsError}</p>
+          ) : !options ? (
+            <p className="text-sm text-muted-foreground">Loading the shipping options from Hostinger…</p>
+          ) : !options.length ? (
+            <p className="text-sm text-red-600">Hostinger has no shipping options for the Netherlands.</p>
+          ) : (
+            <div className="space-y-2">
+              {options.map((o) => (
+                <label
+                  key={o.id}
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 text-sm ${shippingId === o.id ? "border-primary bg-peach/40" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="shipping"
+                    value={o.id}
+                    checked={shippingId === o.id}
+                    onChange={() => setShippingId(o.id)}
+                    className="size-4 accent-primary"
+                  />
+                  <span className="flex-1 font-medium">{o.name ?? "Unnamed option"}</span>
+                  <span>{o.amount == null ? "" : o.amount === 0 ? "Free" : formatMoney(o.amount, currency)}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-muted-foreground">
+            These are the shipping options set up in Hostinger. Add or change them there.
+          </p>
         </Section>
 
         <Section title="Payment and discount">
