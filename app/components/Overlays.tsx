@@ -26,9 +26,7 @@ export function CookieBanner() {
         <div className="flex-1">
           <p className="text-sm font-semibold">Cookie Consent</p>
           <p className="text-sm text-muted-foreground">
-            With your consent, we use cookies from Google (Analytics and Ads) and Meta to measure how our site is used,
-            see which ads lead to orders, and show you personalised ads. This shares data about your visit with Google
-            and Meta. If you decline, none of these load. See our{" "}
+            We use cookies for analytics and personalised ads. See our{" "}
             <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground">
               privacy policy
             </Link>
