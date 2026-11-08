@@ -1,7 +1,12 @@
-// Google Analytics 4 + Meta Pixel. Both scripts load only after the visitor
-// accepts cookies; until then every track() call is a no-op.
+// Google Analytics 4 + Meta Pixel.
+//
+// GA4 uses Google Consent Mode v2 (advanced): gtag.js loads on every page with
+// consent denied, so GA gets cookieless pings from every visitor, and switches
+// to granted when the visitor clicks Accept. Meta Pixel has no consent mode, so
+// it still loads only after Accept; its events wait until then and are dropped
+// on Decline.
 import { effectivePrice, type Product } from "./catalog";
-import { readConsent } from "./consent";
+import { readConsent, type Consent } from "./consent";
 import { toDecimal } from "./money";
 
 export type AnalyticsIds = { gaId: string | null; pixelId: string | null };
@@ -18,15 +23,30 @@ declare global {
 }
 
 let ids: AnalyticsIds = { gaId: null, pixelId: null };
-let started = false;
-// Events fired before the trackers start (e.g. a child component's effect runs
-// before the root's), sent once the visitor's consent is known to be "accepted".
-let queue: (() => void)[] = [];
+let gaStarted = false;
+let metaStarted = false;
+// Events fired before a tracker starts (e.g. a child component's effect runs
+// before the root's). GA's are sent as soon as GA starts; Meta's once the
+// visitor accepts.
+let gaQueue: (() => void)[] = [];
+let metaQueue: (() => void)[] = [];
 
-function send(fn: () => void) {
-  if (started) fn();
-  else if (readConsent() !== "declined" && queue.length < 50) queue.push(fn);
+function sendGa(fn: () => void) {
+  if (gaStarted) fn();
+  else if (gaQueue.length < 50) gaQueue.push(fn);
 }
+
+function sendMeta(fn: () => void) {
+  if (metaStarted) fn();
+  else if (readConsent() !== "declined" && metaQueue.length < 50) metaQueue.push(fn);
+}
+
+const consentState = (value: "granted" | "denied") => ({
+  ad_storage: value,
+  analytics_storage: value,
+  ad_user_data: value,
+  ad_personalization: value,
+});
 
 function loadScript(src: string) {
   const s = document.createElement("script");
@@ -53,10 +73,13 @@ function debugMode() {
   }
 }
 
-/** Loads both trackers. Safe to call more than once. */
+/**
+ * Starts GA4 on every page, with consent denied unless the visitor accepted
+ * earlier, and Meta Pixel too if they did. Safe to call more than once.
+ */
 export function startAnalytics(config: AnalyticsIds) {
-  if (started || typeof window === "undefined") return;
-  started = true;
+  if (gaStarted || typeof window === "undefined") return;
+  gaStarted = true;
   ids = config;
 
   if (ids.gaId) {
@@ -66,12 +89,37 @@ export function startAnalytics(config: AnalyticsIds) {
       // eslint-disable-next-line prefer-rest-params
       window.dataLayer!.push(arguments);
     };
+    // The consent default must come before any other gtag command.
+    window.gtag("consent", "default", {
+      ...consentState(readConsent() === "accepted" ? "granted" : "denied"),
+      wait_for_update: 500,
+    });
+    // Keeps the Google Ads click id (gclid) in links instead of a cookie.
+    window.gtag("set", "url_passthrough", true);
     window.gtag("js", new Date());
     // Page views are sent manually on every client-side navigation. Debug mode
     // shows the events live in GA's DebugView and keeps them out of reports.
     window.gtag("config", ids.gaId, { send_page_view: false, ...(debugMode() && { debug_mode: true }) });
     loadScript(`https://www.googletagmanager.com/gtag/js?id=${ids.gaId}`);
   }
+
+  const pending = gaQueue;
+  gaQueue = [];
+  pending.forEach((fn) => fn());
+
+  if (readConsent() === "accepted") startMeta();
+}
+
+/** The visitor clicked Accept or Decline on the cookie banner. No reload needed. */
+export function updateConsent(value: Consent) {
+  if (ids.gaId) window.gtag?.("consent", "update", consentState(value === "accepted" ? "granted" : "denied"));
+  if (value === "accepted") startMeta();
+  else metaQueue = [];
+}
+
+function startMeta() {
+  if (metaStarted) return;
+  metaStarted = true;
 
   if (ids.pixelId && !window.fbq) {
     const fbq = function (...args: unknown[]) {
@@ -89,22 +137,17 @@ export function startAnalytics(config: AnalyticsIds) {
     window.fbq("init", ids.pixelId);
   }
 
-  const pending = queue;
-  queue = [];
+  const pending = metaQueue;
+  metaQueue = [];
   pending.forEach((fn) => fn());
 }
 
-/** The visitor declined cookies: drop anything waiting to be sent. */
-export function discardQueuedEvents() {
-  queue = [];
-}
-
 const ga = (event: string, params: Record<string, unknown>) =>
-  send(() => {
+  sendGa(() => {
     if (ids.gaId) window.gtag?.("event", event, params);
   });
 const meta = (event: string, params?: Record<string, unknown>, options?: Record<string, unknown>) =>
-  send(() => {
+  sendMeta(() => {
     if (ids.pixelId) window.fbq?.("track", event, params ?? {}, options ?? {});
   });
 

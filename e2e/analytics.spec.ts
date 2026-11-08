@@ -1,20 +1,37 @@
-// What the checkout reports to Google Analytics. The GA script itself is
-// blocked in the tests; the events are read from window.dataLayer, which is
-// exactly what gtag.js would send.
+// What the site reports to Google Analytics. The GA script itself is blocked
+// in the tests; the commands are read from window.dataLayer, which is exactly
+// what gtag.js would send.
 import type { Page } from "@playwright/test";
 import { expect, fillDetails, pickDate, placeOrder, SAT_7_NOV, seedBasket, test, waitForCheckout } from "./test";
 
-async function gaEvents(page: Page) {
+async function gtagCommands(page: Page) {
   return page.evaluate(() =>
-    ((window as unknown as { dataLayer?: unknown[] }).dataLayer ?? [])
-      .map((entry) => Array.from(entry as ArrayLike<unknown>))
-      .filter((args) => args[0] === "event")
-      .map((args) => ({ name: args[1] as string, params: args[2] as Record<string, unknown> })),
+    ((window as unknown as { dataLayer?: unknown[] }).dataLayer ?? []).map((entry) =>
+      Array.from(entry as ArrayLike<unknown>),
+    ),
   );
 }
 
+async function gaEvents(page: Page) {
+  return (await gtagCommands(page))
+    .filter((args) => args[0] === "event")
+    .map((args) => ({ name: args[1] as string, params: args[2] as Record<string, unknown> }));
+}
+
+const denied = { ad_storage: "denied", analytics_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" };
+const granted = { ad_storage: "granted", analytics_storage: "granted", ad_user_data: "granted", ad_personalization: "granted" };
+
 test.describe("with cookies accepted", () => {
   test.use({ consent: "accepted" });
+
+  test("consent starts out granted", async ({ page }) => {
+    await page.goto("/");
+    await expect.poll(async () => (await gtagCommands(page))[0]).toEqual([
+      "consent",
+      "default",
+      { ...granted, wait_for_update: 500 },
+    ]);
+  });
 
   test("the purchase is reported once, with delivery in its value", async ({ page, hostinger }) => {
     await seedBasket(page, { var_coconut: 4 });
@@ -49,10 +66,10 @@ test.describe("with cookies accepted", () => {
   });
 });
 
-test("nothing is sent to Google Analytics when cookies are declined", async ({ page }) => {
-  const trackers: string[] = [];
+test("with cookies declined, GA is measured without cookies and Meta never loads", async ({ page }) => {
+  const meta: string[] = [];
   page.on("request", (r) => {
-    if (/googletagmanager|google-analytics|facebook/.test(r.url())) trackers.push(r.url());
+    if (/facebook/.test(r.url())) meta.push(r.url());
   });
   await seedBasket(page, { var_birthday: 1 });
   await page.goto("/checkout");
@@ -62,6 +79,39 @@ test("nothing is sent to Google Analytics when cookies are declined", async ({ p
   await placeOrder(page);
   await expect(page.getByRole("heading", { name: "Thank you for your order!" })).toBeVisible();
 
-  expect(trackers).toEqual([]);
-  expect(await gaEvents(page)).toEqual([]);
+  const commands = await gtagCommands(page);
+  expect(commands[0]).toEqual(["consent", "default", { ...denied, wait_for_update: 500 }]);
+  expect(commands[1]).toEqual(["set", "url_passthrough", true]);
+  expect(commands.some((c) => c[0] === "consent" && c[1] === "update")).toBe(false);
+  const names = (await gaEvents(page)).map((e) => e.name);
+  expect(names).toContain("begin_checkout");
+  expect(names).toContain("purchase");
+  expect(meta).toEqual([]);
+});
+
+test.describe("before a cookie choice", () => {
+  test.use({ consent: null });
+
+  test("events are sent with consent denied, and Accept grants it without a reload", async ({ page }) => {
+    await page.goto("/products/coconut");
+    await expect.poll(async () => (await gaEvents(page)).map((e) => e.name)).toContain("view_item");
+    expect((await gtagCommands(page))[0]).toEqual(["consent", "default", { ...denied, wait_for_update: 500 }]);
+
+    await page.evaluate(() => ((window as unknown as { notReloaded: boolean }).notReloaded = true));
+    await page.getByRole("dialog", { name: "Cookie consent" }).getByRole("button", { name: "Accept" }).click();
+
+    const updates = (await gtagCommands(page)).filter((c) => c[0] === "consent" && c[1] === "update");
+    expect(updates).toEqual([["consent", "update", granted]]);
+    expect(await page.evaluate(() => localStorage.getItem("cakely-cookie-consent"))).toBe("accepted");
+    expect(await page.evaluate(() => (window as unknown as { notReloaded?: boolean }).notReloaded)).toBe(true);
+  });
+
+  test("Decline keeps consent denied", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("dialog", { name: "Cookie consent" }).getByRole("button", { name: "Decline" }).click();
+
+    const updates = (await gtagCommands(page)).filter((c) => c[0] === "consent" && c[1] === "update");
+    expect(updates).toEqual([["consent", "update", denied]]);
+    expect(await page.evaluate(() => localStorage.getItem("cakely-cookie-consent"))).toBe("declined");
+  });
 });
