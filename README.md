@@ -66,8 +66,7 @@ The checkout page runs these steps against the Hostinger Storefront API, all fro
 
 Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's docs say: "Sales channels such as TikTok Shop, Meta, and custom channels don't share traffic data with the Traffic tab." Orders still appear in Hostinger's Sales tab. Visitor tracking comes from two separate tools:
 
-- **Google Analytics 4**, using [Consent Mode v2](https://developers.google.com/tag-platform/security/guides/consent) (advanced). It loads on every page with consent **denied**, so GA gets cookieless pings from every visitor and models the ones who don't accept. **Accept** on the cookie banner switches consent to granted without a reload; **Decline** keeps it denied (`app/lib/analytics.ts`).
-- **Meta Pixel** has no consent mode, so it loads only after **Accept**. Before that, and after **Decline**, it doesn't load at all.
+- **Google Analytics 4** and **Meta Pixel**. They load only after the visitor clicks **Accept** on the cookie banner. Before that, and after **Decline**, no tracking script loads (`app/lib/analytics.ts`). GA uses [Google Consent Mode v2](https://developers.google.com/tag-platform/security/guides/consent) in its basic form: once loaded, it tells Google that consent was granted for `ad_storage`, `analytics_storage`, `ad_user_data` and `ad_personalization`. Google Ads needs this for conversions and remarketing from EEA visitors. Advanced mode (loading GA before Accept with consent denied) was left out on purpose because of the Dutch/EU cookie rules.
 - **Funnel events**, sent to both tools:
 
   | Step | GA4 event | Meta event |
@@ -109,7 +108,7 @@ The built-in **Purchase journey** report (Drive sales) is a closed funnel. Anyon
 - The biggest drop-off in the Purchase funnel.
 - Whether GA's purchase count matches the orders in Hostinger's Sales tab.
 
-GA will still count a bit lower than Hostinger: visitors who decline cookies are only counted through cookieless pings and modelling, and visitors with an ad blocker aren't counted at all.
+GA will always count a bit lower than Hostinger, because visitors who decline cookies or use an ad blocker aren't tracked.
 
 ### Testing tracking
 
@@ -122,11 +121,9 @@ Debug mode is always on for a dev server (`npm run dev`). On the live site, open
 To test an order:
 
 1. Open the site with `?ga_debug=1`.
-2. Accept the cookie banner, then turn off any ad blocker. (Events before Accept are sent too, with consent denied; see "Checking consent mode" below.)
+2. Accept the cookie banner, then turn off any ad blocker.
 3. Open DebugView in GA. Browse, add to basket, check out and place the order. Each event, ending with `purchase`, appears within a few seconds.
 4. Cancel the test order in Hostinger.
-
-**Checking consent mode:** open the site in a private window (so no choice is saved) with [Tag Assistant](https://tagassistant.google.com) connected to `https://trycakely.com/?ga_debug=1`. Before you click anything, the **Consent** tab shows all four types (`ad_storage`, `analytics_storage`, `ad_user_data`, `ad_personalization`) as Default: Denied, and `page_view` hits carry `gcs=G100`. Click **Accept**: an "Consent update" message appears, the types turn Granted, and later hits carry `gcs=G111`.
 
 To track from a dev server at all, set `GA_MEASUREMENT_ID` (and `META_PIXEL_ID`). Without them the trackers stay off outside production, so local testing doesn't end up in the live data.
 
