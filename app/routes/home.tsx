@@ -37,7 +37,7 @@ export function meta({ matches }: Route.MetaArgs) {
   const siteUrl = siteUrlFrom(matches);
   return pageMeta({
     siteUrl,
-    title: "Cakely | Handmade mini cakes in Amsterdam",
+    title: "Cakely | Handmade cakes in Amsterdam",
     description: site.description,
     path: "/",
     markdownPath: "/home.md",

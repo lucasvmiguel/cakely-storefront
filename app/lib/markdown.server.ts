@@ -206,7 +206,7 @@ export function llmsTxt(siteUrl: string, products: Product[]) {
     "",
     "## Pages",
     "",
-    `- [Home](${siteUrl}/home.md): About Cakely, our mini cakes and how to order`,
+    `- [Home](${siteUrl}/home.md): About Cakely, our cakes and how to order`,
     `- [All products](${siteUrl}/collections.md): Full product list with prices`,
     `- [FAQ](${siteUrl}/faq.md): Delivery, payment and allergens`,
     "",

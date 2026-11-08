@@ -56,7 +56,7 @@ export const home = {
     },
   ],
   miniCakes: {
-    title: "Our Mini Cakes",
+    title: "Our Cakes",
     subtitle: "Explore our mouthwatering cake options",
   },
   feature: {
