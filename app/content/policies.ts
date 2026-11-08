@@ -20,10 +20,10 @@ const returnPolicy: Policy = {
   title: "Return Policy",
   metaTitle: "Return Policy",
   description:
-    "Learn about Cakely's return and refund policy for our fresh cakes in a jar, in line with Dutch and EU consumer law",
+    "Learn about Cakely's return and refund policy for our fresh mini cakes, in line with Dutch and EU consumer law",
   heading: "Return & Refund Policy",
   layout: "centered",
-  body: `At Cakely, every cake in a jar is baked fresh to order with love and care. Because our products are perishable foodstuffs, specific rules apply to returns under Dutch and EU consumer law.
+  body: `At Cakely, every mini cake is baked fresh to order with love and care. Because our products are perishable foodstuffs, specific rules apply to returns under Dutch and EU consumer law.
 
 **No right of withdrawal on our cakes**
 
@@ -33,7 +33,7 @@ In accordance with Article 6:230p of the Dutch Civil Code (Burgerlijk Wetboek), 
 - Products that have been sealed for reasons of health protection or hygiene and have been unsealed after delivery;
 - Products made to the consumer's specifications or clearly personalised (e.g. custom messages, flavours, or designs).
 
-Because our cakes in a jar fall into these categories, we are unable to accept returns or offer refunds once an order has been placed and prepared, except in the cases described below.
+Because our mini cakes fall into these categories, we are unable to accept returns or offer refunds once an order has been placed and prepared, except in the cases described below.
 
 **When you are entitled to a refund or replacement**
 
@@ -62,7 +62,7 @@ const terms: Policy = {
   slug: "terms",
   title: "Terms of Service",
   metaTitle: "Terms of Service",
-  description: "The terms that apply when you use the Cakely website and order our cakes in a jar.",
+  description: "The terms that apply when you use the Cakely website and order our mini cakes.",
   heading: "Terms of Service",
   lastUpdated: "October 18, 2026",
   layout: "document",

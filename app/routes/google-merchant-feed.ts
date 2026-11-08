@@ -2,7 +2,7 @@
 // Merchant Center fetches it daily as a product source, so every product in
 // the Hostinger catalog is listed even before Google's crawler finds its page.
 import { site } from "~/content/site";
-import { htmlToText } from "~/lib/catalog";
+import { htmlToText, PRODUCT_CATEGORY } from "~/lib/catalog";
 import { HANDLING_DAYS } from "~/lib/delivery";
 import { getProducts } from "~/lib/hostinger.server";
 import { EUR, toDecimal } from "~/lib/money";
@@ -40,7 +40,7 @@ export async function loader() {
       tag("condition", "new"),
       tag("brand", site.name),
       tag("identifier_exists", "no"),
-      tag("product_type", "Cakes in a jar"),
+      tag("product_type", PRODUCT_CATEGORY),
       p.flavour ? tag("custom_label_0", p.flavour) : null,
       "      <g:shipping>",
       "        <g:country>NL</g:country>",

@@ -6,7 +6,7 @@ import { AddToBasketButton, Price, ProductCard } from "~/components/ProductCard"
 import { track } from "~/lib/analytics";
 import { ProductGallery } from "~/components/ProductGallery";
 import { site } from "~/content/site";
-import { effectivePrice, htmlToText } from "~/lib/catalog";
+import { effectivePrice, htmlToText, PRODUCT_CATEGORY } from "~/lib/catalog";
 import { getProductBySlug, getRelated } from "~/lib/hostinger.server";
 import { HANDLING_DAYS } from "~/lib/delivery";
 import { EUR, formatMoney, toDecimal } from "~/lib/money";
@@ -36,7 +36,7 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
     sku: p.sku ?? undefined,
     url: `${siteUrl}${path}`,
     brand: { "@type": "Brand", name: site.name },
-    category: "Cakes in a jar",
+    category: PRODUCT_CATEGORY,
     ...(p.flavour ? { additionalProperty: [{ "@type": "PropertyValue", name: "Flavour", value: p.flavour }] } : {}),
     offers: {
       "@type": "Offer",

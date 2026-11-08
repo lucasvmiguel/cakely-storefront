@@ -17,7 +17,7 @@ export async function loader() {
   const [products, reviews] = await Promise.all([getProducts(), getGoogleReviews()]);
   return {
     reviews,
-    jars: products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.slug !== home.feature.productSlug).slice(0, 4),
+    miniCakes: products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.slug !== home.feature.productSlug).slice(0, 4),
     feature: products.find((p) => p.slug === home.feature.productSlug) ?? null,
     birthday: products.find((p) => p.slug === BIRTHDAY_SLUG) ?? null,
   };
@@ -37,7 +37,7 @@ export function meta({ matches }: Route.MetaArgs) {
   const siteUrl = siteUrlFrom(matches);
   return pageMeta({
     siteUrl,
-    title: "Cakely | Cakes in a jar, handmade in Amsterdam",
+    title: "Cakely | Handmade mini cakes in Amsterdam",
     description: site.description,
     path: "/",
     markdownPath: "/home.md",
@@ -50,26 +50,26 @@ const Spacer = ({ h = "h-16" }: { h?: string }) => <div className={h} />;
 const HOME_LIST = "Home";
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { jars, feature, birthday, reviews } = loaderData;
+  const { miniCakes, feature, birthday, reviews } = loaderData;
 
   useEffect(() => {
-    track.viewItemList(HOME_LIST, jars);
+    track.viewItemList(HOME_LIST, miniCakes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
-      <h1 className="sr-only">Cakely — premium cakes in a jar, handmade in Amsterdam</h1>
+      <h1 className="sr-only">Cakely — premium mini cakes, handmade in Amsterdam</h1>
       <HeroCarousel />
       <Spacer />
 
       <section className="container">
         <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold md:text-4xl">{home.jars.title}</h2>
-          <p className="mt-2 text-lg text-muted-foreground">{home.jars.subtitle}</p>
+          <h2 className="text-3xl font-bold md:text-4xl">{home.miniCakes.title}</h2>
+          <p className="mt-2 text-lg text-muted-foreground">{home.miniCakes.subtitle}</p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
-          {jars.map((p) => (
+          {miniCakes.map((p) => (
             <ProductCard key={p.id} product={p} listName={HOME_LIST} />
           ))}
         </div>
