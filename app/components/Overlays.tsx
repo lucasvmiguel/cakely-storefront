@@ -26,7 +26,11 @@ export function CookieBanner() {
         <div className="flex-1">
           <p className="text-sm font-semibold">Cookie Consent</p>
           <p className="text-sm text-muted-foreground">
-            We use cookies to enhance your experience. By accepting, you allow us to use non-essential cookies and scripts.
+            We use cookies for analytics and personalised ads. See our{" "}
+            <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground">
+              privacy policy
+            </Link>
+            .
           </p>
         </div>
         <div className="flex gap-2">

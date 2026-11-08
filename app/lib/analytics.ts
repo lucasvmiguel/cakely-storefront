@@ -1,5 +1,9 @@
 // Google Analytics 4 + Meta Pixel. Both scripts load only after the visitor
 // accepts cookies; until then every track() call is a no-op.
+//
+// GA uses Google Consent Mode v2 in its "basic" form: nothing loads before
+// Accept, and gtag.js tells Google that consent was given, which Google Ads
+// needs for conversions and remarketing from EEA visitors.
 import { effectivePrice, PRODUCT_CATEGORY, type Product } from "./catalog";
 import { readConsent } from "./consent";
 import { toDecimal } from "./money";
@@ -66,6 +70,16 @@ export function startAnalytics(config: AnalyticsIds) {
       // eslint-disable-next-line prefer-rest-params
       window.dataLayer!.push(arguments);
     };
+    // Consent commands must come before any other gtag command: denied by
+    // default, then granted, because this only runs once the visitor accepted.
+    const consent = (value: "granted" | "denied") => ({
+      ad_storage: value,
+      analytics_storage: value,
+      ad_user_data: value,
+      ad_personalization: value,
+    });
+    window.gtag("consent", "default", consent("denied"));
+    window.gtag("consent", "update", consent("granted"));
     window.gtag("js", new Date());
     // Page views are sent manually on every client-side navigation. Debug mode
     // shows the events live in GA's DebugView and keeps them out of reports.

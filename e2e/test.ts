@@ -14,7 +14,8 @@ export const THURSDAY = new Date("2026-11-05T10:00:00+01:00");
 export const SAT_7_NOV = /Saturday, November 7th, 2026/;
 export const SAT_14_NOV = /Saturday, November 14th, 2026/;
 
-export const test = base.extend<{ hostinger: FakeHostinger; consent: "accepted" | "declined"; now: Date }>({
+export const test = base.extend<{ hostinger: FakeHostinger; consent: "accepted" | "declined" | null; now: Date }>({
+  /** The saved cookie choice; null shows the banner. */
   consent: ["declined", { option: true }],
   now: [MONDAY, { option: true }],
   hostinger: [
@@ -27,7 +28,7 @@ export const test = base.extend<{ hostinger: FakeHostinger; consent: "accepted" 
   ],
   page: async ({ page, consent, now }, use) => {
     await page.clock.setFixedTime(now);
-    await page.addInitScript((c) => localStorage.setItem("cakely-cookie-consent", c), consent);
+    if (consent) await page.addInitScript((c) => localStorage.setItem("cakely-cookie-consent", c), consent);
     await use(page);
   },
 });

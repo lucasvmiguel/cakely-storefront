@@ -66,7 +66,7 @@ The checkout page runs these steps against the Hostinger Storefront API, all fro
 
 Hostinger's Traffic tab doesn't count visits to custom storefronts. Hostinger's docs say: "Sales channels such as TikTok Shop, Meta, and custom channels don't share traffic data with the Traffic tab." Orders still appear in Hostinger's Sales tab. Visitor tracking comes from two separate tools:
 
-- **Google Analytics 4** and **Meta Pixel**. They load only after the visitor clicks **Accept** on the cookie banner. Before that, and after **Decline**, no tracking script loads (`app/lib/analytics.ts`).
+- **Google Analytics 4** and **Meta Pixel**. They load only after the visitor clicks **Accept** on the cookie banner. Before that, and after **Decline**, no tracking script loads (`app/lib/analytics.ts`). GA uses [Google Consent Mode v2](https://developers.google.com/tag-platform/security/guides/consent) in its basic form: once loaded, it tells Google that consent was granted for `ad_storage`, `analytics_storage`, `ad_user_data` and `ad_personalization`. Google Ads needs this for conversions and remarketing from EEA visitors. Advanced mode (loading GA before Accept with consent denied) was left out on purpose because of the Dutch/EU cookie rules.
 - **Funnel events**, sent to both tools:
 
   | Step | GA4 event | Meta event |
