@@ -10,7 +10,7 @@ export function meta({ matches }: Route.MetaArgs) {
   return pageMeta({
     siteUrl,
     title: "Frequently Asked Questions | Cakely",
-    description: "Answers about Cakely deliveries in Amsterdam, payment, allergens, delivery times and returning your cake jars.",
+    description: "Answers about Cakely deliveries in Amsterdam, payment, allergens and delivery times.",
     path: "/faq",
     markdownPath: "/faq.md",
     jsonLd: [

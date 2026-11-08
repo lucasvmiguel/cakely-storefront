@@ -4,7 +4,7 @@
 export const site = {
   name: "Cakely",
   description:
-    "Cakely is an artisan bakery based in Amsterdam specialized in premium cakes in a jar — beautifully layered, freshly made, and delivered straight to your door.",
+    "Cakely is an artisan bakery in Amsterdam making premium mini layer cakes, freshly made and delivered straight to your door.",
   email: "contact@trycakely.com",
   phone: "+31 649816530",
   phoneHref: "tel:+31649816530",
@@ -45,7 +45,7 @@ export const home = {
       cta: "SHOP NOW",
       href: "/search",
       align: "left" as const,
-      image: { base: "hero-1", alt: "Cakely cake jars" },
+      image: { base: "hero-1", alt: "Cakely mini cakes" },
     },
     {
       headline: "Discover your favorite 4 original cakes",
@@ -55,8 +55,8 @@ export const home = {
       image: { base: "hero-2", alt: "Cakely's four original cake flavours" },
     },
   ],
-  jars: {
-    title: "Our Cake Jars",
+  miniCakes: {
+    title: "Our Mini Cakes",
     subtitle: "Explore our mouthwatering cake options",
   },
   feature: {
@@ -64,7 +64,7 @@ export const home = {
       "Meet our current feature: Dulce de Leche, available for a limited time before we switch things up with a new flavour",
     cta: "Order Now",
     productSlug: "dulce-de-leche",
-    image: { base: "feature-dulce", alt: "Dulce de Leche cake in a jar" },
+    image: { base: "feature-dulce", alt: "Dulce de Leche mini cake" },
   },
   howTo: {
     title: "How can I order?",
@@ -91,9 +91,9 @@ export const home = {
   },
   birthday: {
     headline:
-      "Planning a birthday? Make it extra sweet with our Birthday Special — 10 handmade cakes for €50, made for sharing and celebrating",
+      "Planning a birthday? Make it extra sweet with our Birthday Special — 10 handmade mini cakes for €50, made for sharing and celebrating",
     cta: "Order Now",
-    image: { base: "birthday", alt: "Birthday Special basket of cake jars" },
+    image: { base: "birthday", alt: "Birthday Special basket of mini cakes" },
   },
   about: {
     title: "A little about us",

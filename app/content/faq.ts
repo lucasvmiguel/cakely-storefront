@@ -28,10 +28,6 @@ export const faq = {
       a: "You can check all of the ingredients (and the allergies) on the product description.",
     },
     {
-      q: "Can I return the plastic jar?",
-      a: "Although the plastic jar can be used for other purposes after washing, we are happy to recycle the plastic jar for you. In case you decide to return to us in a good state, we offer a discount of €0.50 per plastic jar in your next order.",
-    },
-    {
       q: "How long does it take to deliver?",
       a: "We deliver on weekends. If you place your order by Wednesday, we can deliver it the same week. Each cake is handmade, one at a time. This is what makes our cakes taste so much better than mass-produced ones!",
     },

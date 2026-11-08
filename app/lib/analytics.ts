@@ -4,7 +4,7 @@
 // GA uses Google Consent Mode v2 in its "basic" form: nothing loads before
 // Accept, and gtag.js tells Google that consent was given, which Google Ads
 // needs for conversions and remarketing from EEA visitors.
-import { effectivePrice, type Product } from "./catalog";
+import { effectivePrice, PRODUCT_CATEGORY, type Product } from "./catalog";
 import { readConsent } from "./consent";
 import { toDecimal } from "./money";
 
@@ -129,7 +129,7 @@ function gaItems(items: Item[], listName?: string) {
     item_id: itemId(p),
     item_name: p.title,
     item_brand: "Cakely",
-    item_category: "Cakes in a jar",
+    item_category: PRODUCT_CATEGORY,
     item_variant: p.flavour ?? undefined,
     item_list_name: listName,
     price: Number(toDecimal(effectivePrice(p), p.currency)),

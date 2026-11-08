@@ -40,7 +40,7 @@ function contactBlock() {
 }
 
 export function homeMarkdown(siteUrl: string, products: Product[]) {
-  const jars = products.filter((p) => p.slug !== BIRTHDAY_SLUG);
+  const miniCakes = products.filter((p) => p.slug !== BIRTHDAY_SLUG);
   const birthday = products.find((p) => p.slug === BIRTHDAY_SLUG);
   const feature = products.find((p) => p.slug === home.feature.productSlug);
   const parts = [
@@ -61,11 +61,11 @@ export function homeMarkdown(siteUrl: string, products: Product[]) {
       `[${s.cta}](${absolute(siteUrl, s.href)})`,
       "",
     ]),
-    `## ${home.jars.title}`,
+    `## ${home.miniCakes.title}`,
     "",
-    home.jars.subtitle,
+    home.miniCakes.subtitle,
     "",
-    ...jars.map((p) => productSummary(siteUrl, p)),
+    ...miniCakes.map((p) => productSummary(siteUrl, p)),
   ];
   if (feature) {
     parts.push(
@@ -195,7 +195,7 @@ export function llmsTxt(siteUrl: string, products: Product[]) {
     "",
     `> ${site.description}`,
     "",
-    "Cakely sells handmade cakes in a jar, delivered exclusively in Amsterdam (Netherlands). Delivery happens on Saturdays and Sundays; the minimum order is €20. Every page on this site is also available as Markdown by adding `.md` to its URL.",
+    "Cakely sells handmade mini cakes, delivered exclusively in Amsterdam (Netherlands). Delivery happens on Saturdays and Sundays; the minimum order is €20. Every page on this site is also available as Markdown by adding `.md` to its URL.",
     "",
     "## Products",
     "",
@@ -206,9 +206,9 @@ export function llmsTxt(siteUrl: string, products: Product[]) {
     "",
     "## Pages",
     "",
-    `- [Home](${siteUrl}/home.md): About Cakely, our cake jars and how to order`,
+    `- [Home](${siteUrl}/home.md): About Cakely, our mini cakes and how to order`,
     `- [All products](${siteUrl}/collections.md): Full product list with prices`,
-    `- [FAQ](${siteUrl}/faq.md): Delivery, payment, allergens and jar returns`,
+    `- [FAQ](${siteUrl}/faq.md): Delivery, payment and allergens`,
     "",
     "## Policies",
     "",

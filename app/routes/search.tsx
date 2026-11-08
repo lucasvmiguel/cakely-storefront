@@ -56,7 +56,7 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
   return pageMeta({
     siteUrl: siteUrlFrom(matches),
     title: q ? `Search results for “${q}” | Cakely` : "Shop all cakes | Cakely",
-    description: "Browse all Cakely cakes in a jar — handmade in Amsterdam and delivered to your door.",
+    description: "Browse all Cakely mini cakes — handmade in Amsterdam and delivered to your door.",
     path: "/search",
     markdownPath: "/collections.md",
     // Matches the existing robots.txt rules: search result pages aren't indexed.
