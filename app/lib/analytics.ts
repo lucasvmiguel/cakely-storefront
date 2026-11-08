@@ -1,6 +1,6 @@
 // Google Analytics 4 + Meta Pixel. Both scripts load only after the visitor
 // accepts cookies; until then every track() call is a no-op.
-import { effectivePrice, type Product } from "./catalog";
+import { effectivePrice, PRODUCT_CATEGORY, type Product } from "./catalog";
 import { readConsent } from "./consent";
 import { toDecimal } from "./money";
 
@@ -115,7 +115,7 @@ function gaItems(items: Item[], listName?: string) {
     item_id: itemId(p),
     item_name: p.title,
     item_brand: "Cakely",
-    item_category: "Cakes in a jar",
+    item_category: PRODUCT_CATEGORY,
     item_variant: p.flavour ?? undefined,
     item_list_name: listName,
     price: Number(toDecimal(effectivePrice(p), p.currency)),

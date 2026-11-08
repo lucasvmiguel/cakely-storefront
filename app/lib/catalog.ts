@@ -19,6 +19,9 @@ const SKU_EXTRAS: Record<
 
 export const BIRTHDAY_SLUG = "birthday-special";
 
+/** Product category used in GA4 item_category, schema.org Product and the Merchant feed. */
+export const PRODUCT_CATEGORY = "Mini cakes";
+
 export type Product = {
   id: string;
   slug: string;

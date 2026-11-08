@@ -3,7 +3,7 @@
     {
       "id": "prod_choco",
       "title": "Chocofudge Brigadeiro",
-      "subtitle": "Rich chocolate cake in a jar",
+      "subtitle": "Rich chocolate mini cake",
       "description": "<p>Chocolate cake with brigadeiro.</p>",
       "thumbnail": null,
       "slug": "chocofudge-brigadeiro",
@@ -23,7 +23,7 @@
     {
       "id": "prod_coconut",
       "title": "Coconut",
-      "subtitle": "Creamy coconut cake in a jar",
+      "subtitle": "Creamy coconut mini cake",
       "description": "<p class=\"x\">Creamy coconut.</p><p><span onmouseover=window.__xss=1>hover</span> <b onclick='window.__xss=1'>bold</b></p><p/onmouseover=\"window.__xss=1\">slash</p><img src=x onerror=\"window.__xss=1\">",
       "thumbnail": null,
       "slug": "coconut",
@@ -63,7 +63,7 @@
     {
       "id": "prod_lemon",
       "title": "Lemon",
-      "subtitle": "Zesty lemon cake in a jar, on sale",
+      "subtitle": "Zesty lemon mini cake, on sale",
       "description": "<p>Lemon cake.</p>",
       "thumbnail": null,
       "slug": "lemon",
@@ -83,7 +83,7 @@
     {
       "id": "prod_birthday",
       "title": "Birthday Special",
-      "subtitle": "A box of jars for a birthday",
+      "subtitle": "A box of mini cakes for a birthday",
       "description": "<p>Birthday box.</p>",
       "thumbnail": null,
       "slug": "birthday-special",
