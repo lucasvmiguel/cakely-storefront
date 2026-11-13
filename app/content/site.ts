@@ -61,10 +61,10 @@ export const home = {
   },
   feature: {
     headline:
-      "Meet our current feature: Dulce de Leche, available for a limited time before we switch things up with a new flavour",
-    cta: "Order Now",
-    productSlug: "dulce-de-leche",
-    image: { base: "feature-dulce", alt: "Dulce de Leche mini cake" },
+      "Dulce de Leche sold out! Thanks to everyone who tried it. Something new is coming soon",
+    cta: "See All Cakes",
+    href: "/search",
+    image: { base: "feature-dulce", alt: "Dulce de Leche cake" },
   },
   howTo: {
     title: "How can I order?",

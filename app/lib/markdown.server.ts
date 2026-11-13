@@ -42,7 +42,6 @@ function contactBlock() {
 export function homeMarkdown(siteUrl: string, products: Product[]) {
   const miniCakes = products.filter((p) => p.slug !== BIRTHDAY_SLUG);
   const birthday = products.find((p) => p.slug === BIRTHDAY_SLUG);
-  const feature = products.find((p) => p.slug === home.feature.productSlug);
   const parts = [
     `# ${site.name}`,
     "",
@@ -67,17 +66,13 @@ export function homeMarkdown(siteUrl: string, products: Product[]) {
     "",
     ...miniCakes.map((p) => productSummary(siteUrl, p)),
   ];
-  if (feature) {
-    parts.push(
-      "## Featured flavour",
-      "",
-      home.feature.headline,
-      "",
-      `[${home.feature.cta}](${siteUrl}/products/${feature.slug}.md)`,
-      "",
-    );
-  }
   parts.push(
+    "## Featured flavour",
+    "",
+    home.feature.headline,
+    "",
+    `[${home.feature.cta}](${absolute(siteUrl, home.feature.href)})`,
+    "",
     `## ${home.howTo.title}`,
     "",
     ...home.howTo.steps.flatMap((s) => [`### ${s.title}`, "", s.body, ""]),
