@@ -17,8 +17,7 @@ export async function loader() {
   const [products, reviews] = await Promise.all([getProducts(), getGoogleReviews()]);
   return {
     reviews,
-    miniCakes: products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.slug !== home.feature.productSlug).slice(0, 4),
-    feature: products.find((p) => p.slug === home.feature.productSlug) ?? null,
+    miniCakes: products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.available).slice(0, 4),
     birthday: products.find((p) => p.slug === BIRTHDAY_SLUG) ?? null,
   };
 }
@@ -50,7 +49,7 @@ const Spacer = ({ h = "h-16" }: { h?: string }) => <div className={h} />;
 const HOME_LIST = "Home";
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { miniCakes, feature, birthday, reviews } = loaderData;
+  const { miniCakes, birthday, reviews } = loaderData;
 
   useEffect(() => {
     track.viewItemList(HOME_LIST, miniCakes);
@@ -76,17 +75,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </section>
       <Spacer />
 
-      {feature && (
-        <>
-          <FeatureBanner
-            headline={home.feature.headline}
-            cta={home.feature.cta}
-            href={`/products/${feature.slug}`}
-            image={home.feature.image}
-          />
-          <Spacer />
-        </>
-      )}
+      <FeatureBanner
+        headline={home.feature.headline}
+        cta={home.feature.cta}
+        href={home.feature.href}
+        image={home.feature.image}
+      />
+      <Spacer />
 
       <section className="container">
         <h2 className="text-center text-3xl font-bold md:text-4xl">{home.howTo.title}</h2>
