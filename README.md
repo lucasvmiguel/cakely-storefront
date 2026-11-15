@@ -57,7 +57,10 @@ The checkout page runs these steps against the Hostinger Storefront API, all fro
 
 **€20 minimum.** `/checkout` sends the customer back to the basket when the basket is below the minimum.
 
-**Manual orders** (`app/routes/manual-order.tsx`). For orders that come in by phone or message: run `npm run dev` and open `http://localhost:3000/manual-order`. Pick products and quantities, enter the customer and address, any delivery date (with an optional time or note), and an optional discount code. The order goes through the same Hostinger steps as the checkout, without the €20 minimum or the weekend-only dates.
+**Manual orders** (`app/routes/manual-order.tsx`). For orders that come in by phone or message, or were taken on another platform: run `npm run dev` and open `http://localhost:3000/manual-order`. Pick products and quantities, enter the customer and address, any delivery date (past dates too, with an optional time or note), and an optional discount code. The order goes through the same Hostinger steps as the checkout, without the €20 minimum or the weekend-only dates.
+- The email is optional. Left empty, the order uses `guest@trycakely.com`, so Hostinger's order emails don't reach a customer.
+- Hostinger only applies discounts as codes. For a one-off discount, create a code (fixed amount or percentage) in Hostinger's Store Manager under Discounts first.
+- Hostinger dates the order on the day it's entered, whatever the delivery date. Sold-out products have to be made available in Hostinger before they can be ordered.
 - The page only exists on the dev server. `app/routes.ts` leaves it out of production builds.
 - Hostinger sends its usual order emails to the email you enter. Use your own address if the customer shouldn't get them.
 - Prices come from the Hostinger catalog. To charge a different amount, use a discount code.

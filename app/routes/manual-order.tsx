@@ -57,7 +57,11 @@ const EMPTY_FORM: Form = {
   code: "",
 };
 
-type Placed = { orderId: string; name: string; total: number; deliveryLabel: string };
+// Used when the order has no customer email (an order taken on another
+// platform, say), so Hostinger's order emails don't go to a real customer.
+const GUEST_EMAIL = "guest@trycakely.com";
+
+type Placed = { orderId: string; name: string; email: string; total: number; deliveryLabel: string };
 
 const input =
   "h-11 w-full rounded-md border bg-background px-3 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -218,9 +222,10 @@ export default function ManualOrder() {
         postal_code: form.postalCode.trim().toUpperCase(),
         country_code: "nl",
       };
+      const email = form.email.trim() || GUEST_EMAIL;
       step = "save the customer details";
       await updateCart(session, {
-        email: form.email.trim(),
+        email,
         // Same place as the checkout puts it: Hostinger has no delivery-date field.
         shipping_address: { ...address, address_2: `Delivery: ${deliveryLabel}${note ? ` · ${note}` : ""}` },
         billing_address: address,
@@ -246,7 +251,7 @@ export default function ManualOrder() {
         );
       }
       const order = await placeOrder(session, paymentId);
-      setPlaced({ orderId: order.id, name: address.first_name, total: cart.total, deliveryLabel });
+      setPlaced({ orderId: order.id, name: address.first_name, email, total: cart.total, deliveryLabel });
       window.scrollTo({ top: 0 });
     } catch (err) {
       console.error(err);
@@ -265,6 +270,9 @@ export default function ManualOrder() {
         <ul className="w-full space-y-1 rounded-xl border p-5 text-left text-sm">
           <li>
             Customer: <strong>{placed.name}</strong>
+          </li>
+          <li className="break-all">
+            Email: <strong>{placed.email}</strong>
           </li>
           <li>
             Delivery: <strong>{placed.deliveryLabel}</strong>
@@ -290,7 +298,8 @@ export default function ManualOrder() {
     <section className="container max-w-3xl py-10 md:py-14">
       <h1 className="text-3xl font-bold">Manual order</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Only on your local dev server. The order is created in Hostinger, which emails the address below as usual.
+        Only on your local dev server. For orders by phone or message, or taken on another platform: the order is created
+        in Hostinger, which emails the address below as usual.
       </p>
 
       <form onSubmit={submit} className="mt-8 space-y-6">
@@ -302,7 +311,10 @@ export default function ManualOrder() {
                 <li key={p.variantId} className="flex items-center gap-3 py-3">
                   <div className="flex-1 text-sm">
                     <p className="font-medium">
-                      {p.title} {!p.available && <span className="font-normal text-red-600">(sold out)</span>}
+                      {p.title}{" "}
+                      {!p.available && (
+                        <span className="font-normal text-red-600">(sold out: make it available in Hostinger to order it)</span>
+                      )}
                     </p>
                     <p className="text-muted-foreground">{formatMoney(effectivePrice(p), p.currency)}</p>
                   </div>
@@ -346,11 +358,20 @@ export default function ManualOrder() {
         <Section title="Customer">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="name" text="Full name" value={form.name} onChange={set("name")} className="sm:col-span-2" />
-            <Field id="email" text="Email" type="email" value={form.email} onChange={set("email")} />
+            <Field
+              id="email"
+              text="Email"
+              optional
+              type="email"
+              placeholder={GUEST_EMAIL}
+              value={form.email}
+              onChange={set("email")}
+            />
             <Field id="phone" text="Phone" type="tel" placeholder="+31 6 12345678" value={form.phone} onChange={set("phone")} />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Hostinger sends its order emails here. Use your own address if the customer shouldn't get them.
+            Hostinger sends its order emails here. Leave it empty to use {GUEST_EMAIL}, so no customer is emailed (for an
+            order taken on another platform, say).
           </p>
         </Section>
 
@@ -368,10 +389,10 @@ export default function ManualOrder() {
             <Calendar
               mode="single"
               weekStartsOn={1}
-              startMonth={today}
+              // Past dates are allowed, for orders already delivered elsewhere.
+              defaultMonth={today}
               selected={deliveryDate ? fromIso(deliveryDate) : undefined}
               onSelect={(day) => setDeliveryDate(day ? toIso(day) : "")}
-              disabled={{ before: today }}
               className="w-full rounded-lg border"
             />
             <div className="space-y-4">
@@ -381,7 +402,9 @@ export default function ManualOrder() {
                     <CalendarDays className="size-4" /> {formatDeliveryDate(deliveryDate)}
                   </span>
                 ) : (
-                  <span className="text-muted-foreground">Any day from today.</span>
+                  <span className="text-muted-foreground">
+                    Any day, including past ones for orders already delivered. Hostinger still dates the order today.
+                  </span>
                 )}
               </p>
               <Field id="note" text="Time or note" optional placeholder="e.g. 14:00–16:00" value={form.note} onChange={set("note")} />
@@ -467,6 +490,10 @@ export default function ManualOrder() {
               {codeError && <p className="mt-1.5 text-sm text-red-600">{codeError}</p>}
             </div>
           </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Hostinger only takes discounts as codes. For a one-off discount, first create a code (fixed amount or
+            percentage) in Hostinger's Store Manager under Discounts, then enter it here and press Apply to check the total.
+          </p>
         </Section>
 
         <Section title="Total">
