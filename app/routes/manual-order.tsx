@@ -367,7 +367,7 @@ export default function ManualOrder() {
               value={form.email}
               onChange={set("email")}
             />
-            <Field id="phone" text="Phone" type="tel" placeholder="+31 6 12345678" value={form.phone} onChange={set("phone")} />
+            <Field id="phone" text="Phone" optional type="tel"placeholder="+31 6 12345678" value={form.phone} onChange={set("phone")} />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
             Hostinger sends its order emails here. Leave it empty to use {GUEST_EMAIL}, so no customer is emailed (for an
@@ -377,9 +377,9 @@ export default function ManualOrder() {
 
         <Section title="Delivery address">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="street" text="Street and house number" value={form.street} onChange={set("street")} className="sm:col-span-2" />
+            <Field id="street" text="Street and house number" optional value={form.street} onChange={set("street")} className="sm:col-span-2" />
             <Field id="apartment" text="Apartment, floor, etc." optional value={form.apartment} onChange={set("apartment")} className="sm:col-span-2" />
-            <Field id="postalCode" text="Postal code" placeholder="1012 AB" value={form.postalCode} onChange={set("postalCode")} />
+            <Field id="postalCode" text="Postal code" optional placeholder="1012 AB" value={form.postalCode} onChange={set("postalCode")} />
             <Field id="city" text="City" value={form.city} onChange={set("city")} />
           </div>
         </Section>
