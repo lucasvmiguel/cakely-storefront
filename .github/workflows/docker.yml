@@ -25,7 +25,10 @@ jobs:
         with:
           node-version: 24.22.1
           cache: npm
+      # Supply-chain cooldown: reject any locked package published < 7 days ago.
+      - run: node scripts/check-package-age.mjs --days 7
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npm run typecheck
       - run: npm run build
 
