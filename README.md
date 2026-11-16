@@ -140,6 +140,8 @@ npm run typecheck
 npm run test:e2e   # end-to-end tests (first time: npx playwright install chromium)
 ```
 
+**Dependencies have a 7-day cooldown.** To guard against supply-chain attacks, `.npmrc` sets `min-release-age=7`, so `npm install`/`npm update` (npm 11.10 or later) never picks a version published in the last 7 days. CI enforces it: `scripts/check-package-age.mjs` fails the build if any package in `package-lock.json` is younger than that, and `npm audit` fails it on high or critical advisories. To fix an urgent vulnerability whose patch is newer than 7 days, review the release and pass `--days 0` in the workflow for that one PR.
+
 ## Testing
 
 `npm run test:e2e` runs Playwright tests in a real browser against a production build. They never touch the real store: the Hostinger API is replaced by fakes in `e2e/` (`fake-catalog-server.js` for the server's catalog, `fake-hostinger.ts` for the checkout), using the test catalog in `e2e/fixtures/catalog.json`. The date is fixed to a Monday, so delivery dates are predictable.
