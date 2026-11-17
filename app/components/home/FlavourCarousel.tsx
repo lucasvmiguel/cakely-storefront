@@ -52,6 +52,12 @@ function useCarousel() {
   return { ref, go, ...edges };
 }
 
+/** Each card's slot: on phones and tablets it carries the 16px gap on the card's
+ *  left (and the last one also on its right), so a snapped card never touches
+ *  the screen edge whatever the browser does with scroll padding. Desktop
+ *  panels are full-bleed. */
+const slot = "flex shrink-0 pl-4 last:pr-4 lg:pl-0 lg:last:pr-0";
+
 const arrow =
   "absolute top-1/2 z-10 hidden size-14 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-peach shadow-xl shadow-primary/30 transition-[transform,opacity] hover:scale-110 disabled:pointer-events-none disabled:opacity-0 md:flex";
 
@@ -76,15 +82,13 @@ export function FlavourCarousel({ cakes, birthday, partyHref = "#build" }: Pick<
           ref={ref}
           tabIndex={0}
           aria-label="Our cakes"
-          className="snap-row scroll-px-4 gap-3 px-4 pb-12 pt-2 outline-none focus-visible:ring-4 focus-visible:ring-primary/30 lg:scroll-p-0 lg:gap-0 lg:p-0"
+          className="snap-row pb-12 pt-2 outline-none focus-visible:ring-4 focus-visible:ring-primary/30 lg:p-0"
         >
           {cakes.map((cake, i) => {
             const t = panelTones[i % panelTones.length];
             return (
-              <li
-                key={cake.id}
-                className={`flex min-h-[34rem] w-[84vw] shrink-0 items-center rounded-[2rem] border-2 border-primary shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none ${t.bg} ${t.text}`}
-              >
+              <li key={cake.id} className={slot}>
+                <div className={`flex min-h-[34rem] w-[84vw] shrink-0 items-center rounded-[2rem] border-2 border-primary shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none ${t.bg} ${t.text}`}>
                 <div className="grid w-full items-center gap-6 px-5 py-8 md:grid-cols-2 md:px-14 md:py-12 lg:gap-14">
                   <div className={`skeleton aspect-square overflow-hidden rounded-[2.5rem] ${t.tile}`}>
                     <CakePhoto product={cake} sizes="(min-width: 1024px) 36vw, 80vw" className="absolute inset-0 size-full object-cover" />
@@ -107,11 +111,13 @@ export function FlavourCarousel({ cakes, birthday, partyHref = "#build" }: Pick<
                     </div>
                   </div>
                 </div>
+                </div>
               </li>
             );
           })}
           {birthday && (
-            <li className="flex min-h-[34rem] w-[84vw] shrink-0 items-center rounded-[2rem] border-2 border-primary bg-primary text-peach shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none">
+            <li className={slot}>
+              <div className="flex min-h-[34rem] w-[84vw] items-center rounded-[2rem] border-2 border-primary bg-primary text-peach shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none">
               <div className="flex w-full flex-col items-start gap-5 px-6 py-12 md:px-14">
                 <span className="text-sm font-semibold uppercase tracking-[0.25em] text-lavender">
                   {String(panels).padStart(2, "0")} / {String(panels).padStart(2, "0")} · or all of them
@@ -121,6 +127,7 @@ export function FlavourCarousel({ cakes, birthday, partyHref = "#build" }: Pick<
                 <a href={partyHref} className="inline-flex h-12 items-center gap-2 rounded-full bg-peach px-6 font-bold text-primary">
                   See the party box <ArrowRight className="size-4" aria-hidden="true" />
                 </a>
+              </div>
               </div>
             </li>
           )}
