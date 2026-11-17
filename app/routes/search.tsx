@@ -179,7 +179,7 @@ export default function Search({ loaderData }: Route.ComponentProps) {
                 {filters.min != null && <input type="hidden" name="min" value={filters.min} />}
                 {filters.max != null && <input type="hidden" name="max" value={filters.max} />}
                 <label className="relative inline-flex items-center">
-                  <span className="mr-2 text-sm text-primary/60">Sort</span>
+                  <span className="mr-2 text-sm text-primary/75">Sort</span>
                   <select
                     name="sort"
                     defaultValue={filters.sort}
@@ -199,6 +199,7 @@ export default function Search({ loaderData }: Route.ComponentProps) {
 
             {showFilters && <div className="mb-6 rounded-3xl bg-lavender/60 p-5 lg:hidden">{filtersForm}</div>}
 
+            <h2 className="sr-only">Results</h2>
             {results.length ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
                 {results.map((p) => (

@@ -21,6 +21,14 @@ export type HomeData = {
 
 export const HOME_LIST = "Home";
 
+/** False on the server and in the first client render, true after hydration.
+ *  For extra markup that only matters once JavaScript runs (loop copies). */
+export function useHydrated() {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  return hydrated;
+}
+
 export const cakeHref = (p: Product) => `/products/${p.slug}`;
 
 /** Lowest mini cake price, for "from €6.50". */
@@ -206,7 +214,7 @@ export function SignOff({ className = "" }: { className?: string }) {
               className="inline-flex h-12 items-center gap-2 rounded-full bg-peach px-6 font-semibold text-primary transition-transform hover:-rotate-2 hover:scale-105"
             >
               <InstagramIcon className="size-5" />
-              Instagram <span className="font-normal opacity-70">{home.signoff.handle}</span>
+              Instagram <span className="font-normal opacity-80">{home.signoff.handle}</span>
             </a>
             <a
               href={site.socials.tiktok}
@@ -215,7 +223,7 @@ export function SignOff({ className = "" }: { className?: string }) {
               className="inline-flex h-12 items-center gap-2 rounded-full border-2 border-peach px-6 font-semibold transition-transform hover:rotate-2 hover:scale-105"
             >
               <TikTokIcon className="size-5" />
-              TikTok <span className="font-normal opacity-70">{home.signoff.handle}</span>
+              TikTok <span className="font-normal opacity-80">{home.signoff.handle}</span>
             </a>
           </div>
         </div>

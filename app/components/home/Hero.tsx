@@ -7,20 +7,25 @@ import { Link } from "react-router";
 import { home } from "~/content/site";
 import { track } from "~/lib/analytics";
 import { effectivePrice, type Product } from "~/lib/catalog";
-import { productImage } from "~/lib/images";
+import { productImage, stopSkeleton } from "~/lib/images";
 import { formatMoney } from "~/lib/money";
-import { CakePhoto, cakeHref, fromPrice, HOME_LIST, WordCycle, type HomeData } from "./kit";
+import { cakeHref, fromPrice, HOME_LIST, useHydrated, WordCycle, type HomeData } from "./kit";
+
+// The rolling rows need their items twice (or more) to loop seamlessly. The
+// server sends them once, which keeps the HTML small for the first paint; the
+// loop copies are added right after hydration.
 
 /** One column of the moving jar wall. */
 function JarColumn({ cakes, reverse, duration }: { cakes: Product[]; reverse?: boolean; duration: string }) {
-  const items = [...cakes, ...cakes];
+  const hydrated = useHydrated();
+  const items = hydrated ? [...cakes, ...cakes] : cakes;
   return (
     <div className="h-full overflow-hidden">
       <div className={reverse ? "marquee-y-reverse" : "marquee-y"} style={{ "--marquee-duration": duration } as CSSProperties}>
         {items.map((c, i) => (
           <div key={`${c.id}-${i}`} className="relative mb-4 aspect-square overflow-hidden rounded-[2rem] bg-peach">
             <img src={productImage(c.images[0] ?? "", 320)} alt="" width={320} height={320} loading="lazy" className="photo-blend size-full object-cover" />
-            <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-full bg-primary/90 px-4 py-2 text-sm font-bold text-peach backdrop-blur">
+            <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-peach">
               <span className="truncate">{c.title}</span>
               <span className="shrink-0 font-medium text-lavender">{formatMoney(effectivePrice(c), c.currency)}</span>
             </span>
@@ -36,7 +41,8 @@ function JarColumn({ cakes, reverse, duration }: { cakes: Product[]; reverse?: b
 function JarRow({ items, reverse = false, duration }: { items: Product[]; reverse?: boolean; duration: string }) {
   // Each copy must be wider than the widest screen (~240px a card), or the
   // loop shows a gap; short lists are repeated until it is.
-  const repeat = Math.max(1, Math.ceil(10 / Math.max(1, items.length)));
+  const hydrated = useHydrated();
+  const repeat = hydrated ? Math.max(1, Math.ceil(10 / Math.max(1, items.length))) : 1;
   const filled = Array.from({ length: repeat }, () => items).flat();
   const row = (copy: boolean) => (
     <ul aria-hidden={copy || undefined} className="flex shrink-0 gap-4 pr-4">
@@ -50,10 +56,15 @@ function JarRow({ items, reverse = false, duration }: { items: Product[]; revers
             className="group block overflow-hidden rounded-[1.75rem] bg-peach p-2 text-primary transition-transform duration-300 hover:-translate-y-1 hover:-rotate-1"
           >
             <span className="skeleton block aspect-square overflow-hidden rounded-[1.4rem] bg-background">
-              <CakePhoto
-                product={c}
-                sizes="224px"
-                className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-110"
+              {/* One fixed size (2x the card) instead of a srcset: there are many of these. */}
+              <img
+                ref={stopSkeleton}
+                src={productImage(c.images[0] ?? "", 448)}
+                alt={copy || i >= items.length ? "" : c.title}
+                width={224}
+                height={224}
+                loading="lazy"
+                className="photo-blend absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
             </span>
             <span className="flex items-center justify-between gap-2 px-2 pb-1 pt-2 text-sm font-bold">
@@ -69,13 +80,14 @@ function JarRow({ items, reverse = false, duration }: { items: Product[]; revers
     <div className="marquee overflow-hidden" style={{ "--marquee-duration": duration } as CSSProperties}>
       <div className="marquee-track" style={reverse ? { animationDirection: "reverse" } : undefined}>
         {row(false)}
-        {row(true)}
+        {hydrated && row(true)}
       </div>
     </div>
   );
 }
 
 export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) {
+  const hydrated = useHydrated();
   const from = fromPrice(cakes);
   const rolling = [...cakes, ...(birthday ? [birthday] : [])];
   return (
@@ -103,7 +115,7 @@ export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) 
           </p>
           <div className="rise-in flex flex-wrap gap-3" style={{ "--i": 4 } as CSSProperties}>
             <a href="#flavours" className="group inline-flex h-13 items-center gap-2 rounded-full bg-peach px-7 font-bold text-primary transition-transform hover:scale-[1.03]">
-              See the cakes{from && <span className="font-medium opacity-70">· from {from}</span>}
+              See the cakes{from && <span className="font-medium opacity-80">· from {from}</span>}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </a>
             {birthday && (
@@ -124,8 +136,14 @@ export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) 
           className="rise-in hidden h-full grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%)] lg:grid"
           style={{ "--i": 3 } as CSSProperties}
         >
-          <JarColumn cakes={rolling} duration="38s" />
-          <JarColumn cakes={[...rolling].reverse()} duration="46s" reverse />
+          {/* Decorative and desktop-only, so it's left out of the server HTML
+              (its box keeps its size, so nothing moves when it appears). */}
+          {hydrated && (
+            <>
+              <JarColumn cakes={rolling} duration="38s" />
+              <JarColumn cakes={[...rolling].reverse()} duration="46s" reverse />
+            </>
+          )}
         </div>
       </div>
 

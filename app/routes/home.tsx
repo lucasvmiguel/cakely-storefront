@@ -10,9 +10,10 @@ import { HOME_LIST, SignOff } from "~/components/home/kit";
 import { TiltedTicker } from "~/components/home/TiltedTicker";
 import { home, site } from "~/content/site";
 import { track } from "~/lib/analytics";
-import { effectivePrice } from "~/lib/catalog";
+import { effectivePrice, type Product } from "~/lib/catalog";
 import { loadHomeData } from "~/lib/home-data.server";
 import { formatMoney } from "~/lib/money";
+import { useRootData } from "~/lib/root-data";
 import { organizationLd, pageMeta, siteUrlFrom, websiteLd } from "~/lib/seo";
 
 export function loader() {
@@ -36,7 +37,10 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { cakes, birthday, reviews, firstDelivery } = loaderData;
+  const { cakeIds, birthdayId, reviews, firstDelivery } = loaderData;
+  const products = useRootData()?.products ?? [];
+  const cakes = cakeIds.map((id) => products.find((p) => p.id === id)).filter((p): p is Product => !!p);
+  const birthday = products.find((p) => p.id === birthdayId) ?? null;
   const birthdayPrice = birthday ? formatMoney(effectivePrice(birthday), birthday.currency) : null;
 
   useEffect(() => {

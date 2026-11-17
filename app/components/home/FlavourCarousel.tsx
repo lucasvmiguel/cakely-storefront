@@ -89,13 +89,13 @@ export function FlavourCarousel({ cakes, birthday, partyHref = "#build" }: Pick<
             const t = panelTones[i % panelTones.length];
             return (
               <li key={cake.id} className={slot}>
-                <div className={`flex min-h-[34rem] w-[84vw] shrink-0 items-center rounded-[2rem] border-2 border-primary shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none ${t.bg} ${t.text}`}>
+                <div className={`flex min-h-[34rem] w-[88vw] shrink-0 items-center rounded-[2rem] border-2 border-primary shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none ${t.bg} ${t.text}`}>
                 <div className="grid w-full items-center gap-6 px-5 py-8 md:grid-cols-2 md:px-14 md:py-12 lg:gap-14">
                   <div className={`skeleton aspect-square overflow-hidden rounded-[2.5rem] ${t.tile}`}>
                     <CakePhoto product={cake} sizes="(min-width: 1024px) 36vw, 80vw" className="absolute inset-0 size-full object-cover" />
                   </div>
                   <div className="flex flex-col items-start gap-4">
-                    <span className="text-sm font-semibold uppercase tracking-[0.25em] opacity-70">
+                    <span className="text-sm font-semibold uppercase tracking-[0.25em] opacity-90">
                       {String(i + 1).padStart(2, "0")} / {String(panels).padStart(2, "0")}
                     </span>
                     <h3 className="text-[clamp(2.5rem,5.5vw,5.5rem)] font-bold leading-[0.9] tracking-[-0.045em]">
@@ -118,7 +118,7 @@ export function FlavourCarousel({ cakes, birthday, partyHref = "#build" }: Pick<
           })}
           {birthday && (
             <li className={slot}>
-              <div className="flex min-h-[34rem] w-[84vw] items-center rounded-[2rem] border-2 border-primary bg-primary text-peach shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none">
+              <div className="flex min-h-[34rem] w-[88vw] items-center rounded-[2rem] border-2 border-primary bg-primary text-peach shadow-lg shadow-primary/10 md:w-[78vw] lg:h-[min(80svh,46rem)] lg:w-[76vw] lg:rounded-none lg:border-0 lg:shadow-none">
               <div className="flex w-full flex-col items-start gap-5 px-6 py-12 md:px-14">
                 <span className="text-sm font-semibold uppercase tracking-[0.25em] text-lavender">
                   {String(panels).padStart(2, "0")} / {String(panels).padStart(2, "0")} · or all of them

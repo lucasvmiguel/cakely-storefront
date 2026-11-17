@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { constants as zlib, brotliCompressSync } from "node:zlib";
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
@@ -9,7 +11,10 @@ const PORT = Number.parseInt(process.env.PORT || "3000");
 
 const app = express();
 
-app.use(compression());
+// Pages are rendered per request, so they get a fast Brotli level (5 is
+// smaller than the default 4 at the same cost). Built CSS/JS gets the best
+// level once, below.
+app.use(compression({ brotli: { params: { [zlib.BROTLI_PARAM_QUALITY]: 5 } } }));
 app.disable("x-powered-by");
 app.use((_req, res, next) => {
   res.set({
@@ -41,6 +46,7 @@ if (DEVELOPMENT) {
   });
 } else {
   console.log("Starting production server");
+  app.use("/assets", precompressedAssets("build/client/assets"));
   app.use(
     "/assets",
     express.static("build/client/assets", { immutable: true, maxAge: "1y" }),
@@ -57,3 +63,38 @@ if (DEVELOPMENT) {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+/**
+ * Serves the built CSS and JS with maximum Brotli compression. Their names are
+ * content hashes, so each file is compressed once (on first request) and kept
+ * in memory. Only files that exist in the build at startup are served here;
+ * everything else falls through to express.static.
+ *
+ * @param {string} dir
+ * @returns {import("express").RequestHandler}
+ */
+function precompressedAssets(dir) {
+  /** @type {Record<string, string>} */
+  const types = { ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
+  const files = new Set(readdirSync(dir).filter((f) => f.endsWith(".css") || f.endsWith(".js")));
+  /** @type {Map<string, Buffer>} */
+  const cache = new Map();
+  return (req, res, next) => {
+    const name = req.path.slice(1);
+    if (!files.has(name) || !/\bbr\b/.test(req.get("Accept-Encoding") ?? "")) return next();
+    let body = cache.get(name);
+    if (!body) {
+      body = brotliCompressSync(readFileSync(`${dir}/${name}`), {
+        params: { [zlib.BROTLI_PARAM_QUALITY]: zlib.BROTLI_MAX_QUALITY },
+      });
+      cache.set(name, body);
+    }
+    res.set({
+      "Content-Type": types[name.slice(name.lastIndexOf("."))],
+      "Content-Encoding": "br",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      Vary: "Accept-Encoding",
+    });
+    res.send(body);
+  };
+}

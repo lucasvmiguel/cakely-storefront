@@ -157,7 +157,7 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
                         {cake.title}
                       </Link>
                     </h3>
-                    <p className="text-sm text-primary/60">{n > 0 ? `${n} in your box` : "Not in your box yet"}</p>
+                    <p className="text-sm text-primary/75">{n > 0 ? `${n} in your box` : "Not in your box yet"}</p>
                   </div>
                   <div role="group" aria-label={`${cake.title} in your birthday box`} className="flex items-center gap-1 rounded-full bg-lavender p-1">
                     <button

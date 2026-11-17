@@ -52,7 +52,7 @@ function StepVisual({ step, cakes, firstDelivery }: { step: number; cakes: Produ
             >
               <span className="text-[0.65rem] font-bold uppercase tracking-widest text-plum md:text-xs">{d.day}</span>
               <span className="text-2xl font-bold leading-tight md:text-4xl">{d.date || <CalendarDays className="my-1 size-8" />}</span>
-              <span className="text-xs text-primary/60">{d.month}</span>
+              <span className="text-xs text-primary/75">{d.month}</span>
               {i === 0 && (
                 <span className="absolute -right-2 -top-2 flex size-7 items-center justify-center rounded-full bg-primary text-peach">
                   <Check className="size-4" />
@@ -61,7 +61,7 @@ function StepVisual({ step, cakes, firstDelivery }: { step: number; cakes: Produ
             </span>
           ))}
         </div>
-        {firstDelivery && <span className="hidden text-xs font-semibold uppercase tracking-widest opacity-70 md:block">Next free weekend</span>}
+        {firstDelivery && <span className="hidden text-xs font-semibold uppercase tracking-widest opacity-90 md:block">Next free weekend</span>}
       </div>
     );
   }

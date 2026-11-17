@@ -83,11 +83,11 @@ export function ProductCard({
       </div>
       <div className="flex flex-1 flex-col gap-1 px-2 pb-3 pt-3">
         <h3 className="line-clamp-2 text-lg font-bold leading-tight">{product.title}</h3>
-        {product.subtitle && <p className="line-clamp-2 text-sm text-primary/65">{product.subtitle}</p>}
+        {product.subtitle && <p className="line-clamp-2 text-sm text-primary/75">{product.subtitle}</p>}
         <div className="mt-auto pt-2">
           <Price product={product} className="text-lg font-bold" />
           {product.pricePerKg && (
-            <p className="text-xs text-primary/60">({formatMoney(product.pricePerKg, product.currency)} per kg)</p>
+            <p className="text-xs text-primary/75">({formatMoney(product.pricePerKg, product.currency)} per kg)</p>
           )}
         </div>
       </div>

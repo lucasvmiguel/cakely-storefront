@@ -75,7 +75,7 @@ export function Header() {
         <div
           className={`relative flex items-center justify-between px-2 transition-all duration-300 sm:px-6 ${
             floating
-              ? "mx-2 mt-2 h-14 rounded-full bg-peach/85 shadow-lg shadow-primary/10 ring-1 ring-primary/10 backdrop-blur-md sm:mx-4"
+              ? "mx-2 mt-2 h-14 rounded-full bg-peach/95 shadow-lg shadow-primary/10 ring-1 ring-primary/10 sm:mx-4"
               : "h-16"
           }`}
         >
