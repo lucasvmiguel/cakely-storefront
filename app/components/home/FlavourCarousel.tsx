@@ -44,7 +44,8 @@ function useCarousel() {
     const el = ref.current;
     const panel = el?.firstElementChild as HTMLElement | null;
     if (!el || !panel) return;
-    const step = panel.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || "0");
+    // columnGap is "normal" (not a number) when the row sets no gap.
+    const step = panel.getBoundingClientRect().width + (parseFloat(getComputedStyle(el).columnGap) || 0);
     const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollBy({ left: dir * step, behavior: smooth ? "smooth" : "auto" });
   };
