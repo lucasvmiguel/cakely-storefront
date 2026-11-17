@@ -1,16 +1,53 @@
 import { Menu, Search, ShoppingCart, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router";
+import { Link, NavLink, useLocation, useMatches } from "react-router";
 import { site } from "~/content/site";
 import { useCart } from "~/lib/cart";
 
 const iconButton =
-  "inline-flex size-9 items-center justify-center rounded-md transition-colors hover:bg-black/5";
+  "inline-flex size-9 items-center justify-center rounded-md transition-colors hover:bg-current/10";
+
+/** Colour of the hero at the top of a page. A route opts in with
+ *  `handle = { heroTone }`. The header then turns transparent and the page
+ *  slides up beneath it (so the hero, glow and all, runs behind it); once
+ *  scrolled it floats as a pill like on every page. Heroes on such pages add
+ *  `pt-16` to clear the header. */
+export type HeroTone = "dark" | "light";
+
+const toneText: Record<HeroTone, string> = {
+  dark: "text-peach",
+  light: "text-foreground",
+};
+
+function useHeroTone() {
+  const matches = useMatches();
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const tone = (matches[i].handle as { heroTone?: HeroTone } | undefined)?.heroTone;
+    if (tone) return tone;
+  }
+  return undefined;
+}
+
+function useScrolled(threshold = 24) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > threshold);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [threshold]);
+  return scrolled;
+}
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const location = useLocation();
+  const tone = useHeroTone();
+  const scrolled = useScrolled();
+  // Every page floats the header as a pill once scrolled.
+  const floating = scrolled;
+  const blended = tone != null && !scrolled;
 
   // Close the drawer whenever we navigate.
   useEffect(() => setOpen(false), [location.pathname]);
@@ -28,8 +65,20 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b bg-peach text-foreground">
-        <div className="relative flex h-16 items-center justify-between px-2 sm:px-6">
+      <header
+        className={`sticky top-0 z-50 transition-colors duration-300 ${
+          tone == null
+            ? `text-foreground ${floating ? "bg-transparent" : "bg-peach"}`
+            : `-mb-16 bg-transparent ${blended ? toneText[tone] : "text-foreground"}`
+        }`}
+      >
+        <div
+          className={`relative flex items-center justify-between px-2 transition-all duration-300 sm:px-6 ${
+            floating
+              ? "mx-2 mt-2 h-14 rounded-full bg-peach/85 shadow-lg shadow-primary/10 ring-1 ring-primary/10 backdrop-blur-md sm:mx-4"
+              : "h-16"
+          }`}
+        >
           <button type="button" className={iconButton} aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}>
             <Menu className="size-5" />
           </button>
@@ -37,9 +86,15 @@ export function Header() {
           <Link
             to="/"
             aria-label="Cakely home"
-            className="absolute left-14 top-1/2 flex h-16 -translate-y-1/2 items-center overflow-hidden sm:left-1/2 sm:-translate-x-1/2"
+            className="absolute left-14 top-1/2 flex h-14 -translate-y-1/2 items-center overflow-hidden sm:left-1/2 sm:-translate-x-1/2"
           >
-            <img src={site.logo} alt="Cakely" width={144} height={144} className="h-36 w-auto max-w-none sm:h-44" />
+            <img
+              src={site.logo}
+              alt="Cakely"
+              width={144}
+              height={144}
+              className={`h-36 w-auto max-w-none transition-[filter] duration-300 sm:h-44 ${blended && tone === "dark" ? "logo-on-dark" : ""}`}
+            />
           </Link>
 
           <div className="flex items-center gap-1">
@@ -49,7 +104,7 @@ export function Header() {
             <Link to="/cart" className={`${iconButton} relative`} aria-label={`Basket, ${count} items`}>
               <ShoppingCart className="size-5" />
               {count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-4.5 text-primary-foreground">
+                <span className={`absolute -right-0.5 -top-0.5 flex min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-4.5 ${blended && tone === "dark" ? "bg-peach text-primary" : "bg-primary text-primary-foreground"}`}>
                   {count}
                 </span>
               )}

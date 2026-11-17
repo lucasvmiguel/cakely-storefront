@@ -30,6 +30,15 @@
   font-display: swap;
   src: url("/fonts/poppins-700.woff2") format("woff2");
 }
+/* Bungee (SIL Open Font License), latin subset, for display type like the
+   sign-off wordmark. Not preloaded: it is only used below the fold. */
+@font-face {
+  font-family: "Bungee";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/bungee-400.woff2") format("woff2");
+}
 /* Arial sized like Poppins, so text doesn't jump when the font arrives. */
 @font-face {
   font-family: "Poppins Fallback";
@@ -42,6 +51,7 @@
 
 @theme {
   --font-sans: "Poppins", "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bungee", "Poppins", "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
   --color-primary: #2a1458;
@@ -51,6 +61,8 @@
   --color-peach: #ffead8;
   --color-banner: #2a1458;
   --color-banner-foreground: #e7e5ff;
+  --color-lavender: #e7e5ff;
+  --color-plum: #605083;
   --color-muted: oklch(0.97 0 0);
   --color-muted-foreground: oklch(0.556 0 0);
   --color-border: oklch(0.922 0 0);
@@ -74,8 +86,15 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+  /* Everything clickable gets the hand cursor, not only buttons. */
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role="button"]:not(:disabled),
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  label:has(> input[type="checkbox"]:not(:disabled)),
+  label:has(> input[type="radio"]:not(:disabled)) {
     cursor: pointer;
   }
 }
@@ -163,4 +182,123 @@
     animation: none;
     opacity: 0;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Home page motion. Transform and opacity only (compositor-friendly), and
+   switched off for visitors who ask for reduced motion: content is visible by
+   default and animation is opted in.
+   ------------------------------------------------------------------------ */
+
+/* Fades in as the element scrolls into view, no JavaScript. Browsers without
+   scroll-driven animations just show it. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Endless ticker. The track holds the content twice and moves by half. */
+.marquee-track {
+  display: flex;
+  width: max-content;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-track {
+    animation: marquee var(--marquee-duration, 30s) linear infinite;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* Vertical ticker (the hero's wall of jars). The column holds its items twice. */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-y {
+    animation: marquee-y var(--marquee-duration, 40s) linear infinite;
+  }
+  .marquee-y-reverse {
+    animation: marquee-y var(--marquee-duration, 40s) linear infinite reverse;
+  }
+}
+@keyframes marquee-y {
+  to { transform: translateY(-50%); }
+}
+
+/* Load-in effects; --i staggers them. */
+@media (prefers-reduced-motion: no-preference) {
+  .rise-in {
+    animation: rise-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 120ms);
+  }
+  .pop-in {
+    animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms + 200ms);
+  }
+  .float {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -1.3s);
+  }
+  .word-in {
+    animation: word-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+/* Starts at 0.01, not 0: an invisible headline would hold back the
+   Largest Contentful Paint until the animation ends. */
+@keyframes rise-in {
+  from { opacity: 0.01; transform: translateY(0.6em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes float {
+  50% { transform: translateY(-12px) rotate(var(--r, 0deg)); }
+}
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(60%) rotate(4deg); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A row that scrolls sideways with snap points and no scrollbar (the flavour
+   carousel). */
+.snap-row {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.snap-row::-webkit-scrollbar {
+  display: none;
+}
+/* Cards snap to the start (after the row's scroll padding), so the next card
+   peeks in on the right. */
+.snap-row > * {
+  scroll-snap-align: start;
+}
+
+/* Product photos are shot on a light-grey sweep. Brightening them a touch and
+   multiplying onto the tile colour lets that grey take on the tile's colour.
+   The tile needs a solid background of its own. */
+.photo-blend {
+  mix-blend-mode: multiply;
+  filter: brightness(1.2) contrast(1.08) saturate(1.05);
+}
+
+/* The purple logo SVG, recoloured to peach for purple headers. */
+.logo-on-dark {
+  filter: brightness(0) invert(93%) sepia(9%) saturate(780%) hue-rotate(318deg) brightness(103%);
 }

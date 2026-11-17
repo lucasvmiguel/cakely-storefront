@@ -69,3 +69,8 @@ export const fromIso = (iso: string) => new Date(`${iso}T12:00:00`);
 
 export const toIso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** The first date a new order can be delivered, e.g. "2026-11-21". */
+export function firstDeliveryDate(now = new Date()) {
+  return deliveryDates(now)[0].iso;
+}

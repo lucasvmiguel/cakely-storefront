@@ -64,6 +64,31 @@ test("@purchase a customer orders from a product page through to the order", asy
   expect(order.billing_address).toMatchObject({ first_name: customer.name, address_1: customer.street });
 });
 
+test("@purchase the flavours picked for a Birthday Special go with the order", async ({ page, hostinger }) => {
+  await seedBasket(page, { var_birthday: 1 });
+  // The mix the home page's birthday box builder saves (lib/birthday-mix).
+  await page.evaluate(() =>
+    localStorage.setItem("cakely-birthday-mixes", JSON.stringify([{ var_coconut: 4, var_choco: 3, var_lemon: 3 }])),
+  );
+
+  await page.goto("/cart");
+  await expect(page.getByText("4 Coconut, 3 Chocolate, 3 Lemon")).toBeVisible();
+  await page.getByRole("link", { name: "Proceed to Checkout" }).click();
+  await waitForCheckout(page);
+  await expect(page.getByRole("complementary")).toContainText("4 Coconut, 3 Chocolate, 3 Lemon");
+
+  await fillDetails(page);
+  await pickDate(page, SAT_7_NOV);
+  await placeOrder(page);
+  await expect(page.getByRole("heading", { name: "Thank you for your order!" })).toBeVisible();
+
+  const [order] = hostinger.orders;
+  expect(order.items).toEqual([{ variant_id: "var_birthday", quantity: 1 }]);
+  expect(order.shipping_address).toMatchObject({ address_2: expect.stringMatching(/^Delivery: Saturday,? 7 November 2026 · Birthday box: 4 Coconut, 3 Chocolate, 3 Lemon$/) });
+  // Used up with the order.
+  expect(await page.evaluate(() => localStorage.getItem("cakely-birthday-mixes"))).toBe("[]");
+});
+
 test("@purchase a mixed basket with a sale price and a discount code", async ({ page, hostinger }) => {
   // Lemon is on sale (€5.50 instead of €6.50).
   await seedBasket(page, { var_lemon: 2, var_birthday: 1 });

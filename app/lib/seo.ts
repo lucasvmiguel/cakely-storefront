@@ -78,7 +78,6 @@ export function organizationLd(siteUrl: string) {
       "@type": "PostalAddress",
       addressLocality: site.address.city,
       addressRegion: site.address.region,
-      postalCode: site.address.postalCode,
       addressCountry: site.address.country,
     },
     areaServed: { "@type": "City", name: "Amsterdam" },

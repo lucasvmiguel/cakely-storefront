@@ -1,15 +1,19 @@
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useMatches } from "react-router";
 import { announcements } from "~/content/site";
 
+/** A route hides the bar with `handle = { hideAnnouncement: true }`. */
 export function AnnouncementBar() {
   const [active, setActive] = useState(0);
+  const hidden = useMatches().some((m) => (m.handle as { hideAnnouncement?: boolean } | undefined)?.hideAnnouncement);
 
   useEffect(() => {
     const id = setInterval(() => setActive((i) => (i + 1) % announcements.length), 5000);
     return () => clearInterval(id);
   }, []);
+
+  if (hidden) return null;
 
   return (
     <div className="relative h-9 overflow-hidden bg-banner px-4 text-center text-sm font-medium text-banner-foreground">

@@ -1,4 +1,4 @@
-import { ChevronUp, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Form, useSubmit } from "react-router";
 import type { Route } from "./+types/search";
@@ -68,7 +68,7 @@ const SEARCH_LIST = "Shop all";
 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details open className="group border-b py-4">
+    <details open className="group border-b border-primary/10 py-4 last:border-0">
       <summary className="flex list-none items-center justify-between text-sm font-medium [&::-webkit-details-marker]:hidden">
         {title}
         <ChevronUp className="size-4 transition-transform group-[:not([open])]:rotate-180" />
@@ -107,9 +107,9 @@ export default function Search({ loaderData }: Route.ComponentProps) {
       </FilterGroup>
       <FilterGroup title="Price">
         <div className="flex items-center gap-2">
-          <input type="number" name="min" min={0} placeholder="Min" defaultValue={filters.min ?? ""} className="h-8 w-full rounded-md border px-2 text-sm" />
+          <input type="number" name="min" min={0} placeholder="Min" defaultValue={filters.min ?? ""} className="h-9 w-full rounded-full border border-primary/20 bg-background px-3 text-sm" />
           <span className="text-muted-foreground">–</span>
-          <input type="number" name="max" min={0} placeholder="Max" defaultValue={filters.max ?? ""} className="h-8 w-full rounded-md border px-2 text-sm" />
+          <input type="number" name="max" min={0} placeholder="Max" defaultValue={filters.max ?? ""} className="h-9 w-full rounded-full border border-primary/20 bg-background px-3 text-sm" />
         </div>
       </FilterGroup>
       {flavours.length > 0 && (
@@ -132,25 +132,30 @@ export default function Search({ loaderData }: Route.ComponentProps) {
   );
 
   return (
-    <section className="py-8">
+    <section className="pb-16">
+      <div className="bg-peach">
+        <div className="container py-10 text-center md:py-14">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-plum">Handmade in Amsterdam</p>
+          <h1 className="mt-2 text-4xl font-bold tracking-[-0.03em] md:text-6xl">Shop all cakes.</h1>
+        </div>
+      </div>
       <div className="container">
-        <h1 className="sr-only">Shop all cakes</h1>
-        <Form method="get" className="mx-auto mb-8 flex w-full md:w-[600px]" role="search">
+        <Form method="get" className="relative z-10 mx-auto -mt-6 mb-10 flex w-full rounded-full bg-background p-1.5 shadow-lg shadow-primary/10 ring-1 ring-primary/10 md:w-[600px]" role="search">
           <input
             type="search"
             name="q"
             defaultValue={filters.q}
             placeholder="Search products..."
             aria-label="Search products"
-            className="h-10 flex-1 rounded-l-md border border-r-0 bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+            className="h-11 min-w-0 flex-1 rounded-full bg-transparent px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           />
-          <button type="submit" className="h-10 rounded-r-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <button type="submit" className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]">
             Search
           </button>
         </Form>
 
         <div className="flex gap-8">
-          <aside className="hidden w-56 shrink-0 lg:block">{filtersForm}</aside>
+          <aside className="hidden h-fit w-60 shrink-0 rounded-3xl bg-lavender/60 p-5 lg:block">{filtersForm}</aside>
 
           <div className="flex-1">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -158,7 +163,7 @@ export default function Search({ loaderData }: Route.ComponentProps) {
                 <button
                   type="button"
                   onClick={() => setShowFilters((s) => !s)}
-                  className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm lg:hidden"
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-primary/20 px-4 text-sm font-medium lg:hidden"
                   aria-expanded={showFilters}
                 >
                   <SlidersHorizontal className="size-4" /> Filters
@@ -173,20 +178,29 @@ export default function Search({ loaderData }: Route.ComponentProps) {
                 {filters.flavour && <input type="hidden" name="flavour" value={filters.flavour} />}
                 {filters.min != null && <input type="hidden" name="min" value={filters.min} />}
                 {filters.max != null && <input type="hidden" name="max" value={filters.max} />}
-                <select name="sort" defaultValue={filters.sort} aria-label="Sort by" className="h-9 rounded-md border bg-background px-3 text-sm">
+                <label className="relative inline-flex items-center">
+                  <span className="mr-2 text-sm text-primary/60">Sort</span>
+                  <select
+                    name="sort"
+                    defaultValue={filters.sort}
+                    aria-label="Sort by"
+                    className="h-10 cursor-pointer appearance-none rounded-full bg-lavender/60 pl-4 pr-10 text-sm font-semibold outline-none transition-colors hover:bg-lavender focus-visible:ring-2 focus-visible:ring-primary/30"
+                  >
                   {Object.entries(SORTS).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
                     </option>
                   ))}
-                </select>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3.5 size-4" aria-hidden="true" />
+                </label>
               </Form>
             </div>
 
-            {showFilters && <div className="mb-6 rounded-lg border p-4 lg:hidden">{filtersForm}</div>}
+            {showFilters && <div className="mb-6 rounded-3xl bg-lavender/60 p-5 lg:hidden">{filtersForm}</div>}
 
             {results.length ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
                 {results.map((p) => (
                   <ProductCard key={p.id} product={p} listName={SEARCH_LIST} />
                 ))}

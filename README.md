@@ -19,7 +19,7 @@ A few things live in this repo instead:
 | What | Where |
 | --- | --- |
 | Product URL slugs (`/products/coconut`), flavour, jar weight for the €/kg line | `app/lib/catalog.ts` (`SKU_EXTRAS`, keyed by SKU) |
-| Home page copy, hero slides, banners, contact details, socials | `app/content/site.ts` |
+| Home page copy (headline, tickers, birthday section, how it works), contact details, socials | `app/content/site.ts` |
 | FAQ | `app/content/faq.ts` |
 | Return policy, terms, privacy | `app/content/policies.ts` (Markdown) |
 | Marketing images | `public/images/` |
@@ -29,7 +29,15 @@ A few things live in this repo instead:
 2. Give it a SKU.
 3. Optionally add the SKU to `SKU_EXTRAS` to get a nice URL slug, a flavour filter and the €/kg line. Without an entry, the product still appears, using Hostinger's slug.
 
-**Birthday Special:** the home-page banner appears automatically once a product with SKU `1007` exists in the channel.
+**Birthday Special:** the home page's "Plan the party" section appears automatically once a product with SKU `1007` is in stock in the channel.
+
+## Home page
+
+`app/routes/home.tsx` puts together the sections in `app/components/home/`: the hero (with rolling jar cards), tilted tickers, the flavour carousel, the birthday box builder and "How it works". Only in-stock cakes are shown; sold-out ones stay on `/search`. Motion is CSS-only and switches off for visitors who ask for reduced motion.
+
+**Birthday box flavours.** In the birthday section, customers pick the ten cakes that go in a Birthday Special (or tap "Surprise me"). Hostinger orders have no notes field, so the choice is kept next to the basket (`app/lib/birthday-mix.ts`), shown in the basket and checkout, and added to the order's second address line after the delivery date, for example "Delivery: Saturday 7 November 2026 · Birthday box: 4 Coconut, 3 Chocolate, 3 Lemon". It shows in the dashboard and order emails. A Birthday Special added from its product page says "mixed by us".
+
+**Basket bar.** Once something is in the basket, a bar at the bottom of every page (except the basket and checkout) shows the total, progress to the €20 minimum and a link to the basket or checkout.
 
 ## SEO and LLM support
 
@@ -148,6 +156,7 @@ npm run test:e2e   # end-to-end tests (first time: npx playwright install chromi
 
 - **`purchase.spec.ts`**: the whole purchase flow, from a product page to an order, and checks the order Hostinger would receive (items, address, delivery date, payment method, total). Also covers sale prices, discount codes, the €20 minimum, sold-out jars, missing details, the Thursday cutoff, refreshing mid-checkout, a basket changed in another tab, and a failed order. Tests tagged `@purchase` also run on a phone-sized screen.
 - **`analytics.spec.ts`**: what goes to Google Analytics, with and without cookie consent.
+- **`home.spec.ts`**: the birthday box builder (picking, the ten-cake limit, Surprise me, several boxes, flavours reaching the order) and the flavour carousel.
 - **`site.spec.ts`**: pages load, plus the sitemap, Merchant feed, Markdown twins and security fixes.
 
 They run in GitHub Actions on every pull request and push. If they fail, no Docker image is published, and the HTML report is attached to the run. To watch them in a browser locally, run `npx playwright test --ui`.

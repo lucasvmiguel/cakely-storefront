@@ -3,7 +3,8 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/cart";
 import { useRootData } from "~/lib/root-data";
-import { effectivePrice, type Product } from "~/lib/catalog";
+import { describeBoxes, useBirthdayMixes } from "~/lib/birthday-mix";
+import { BIRTHDAY_SLUG, effectivePrice, type Product } from "~/lib/catalog";
 import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
 import { productImage, stopSkeleton } from "~/lib/images";
@@ -24,6 +25,18 @@ export function meta({ matches }: Route.MetaArgs) {
 export default function Cart() {
   const root = useRootData();
   const { lines, ready, setQuantity, remove } = useCart();
+  const [birthdayMixes, saveBirthdayMixes] = useBirthdayMixes();
+
+  // Fewer Birthday Specials means the last boxes' flavour mixes go too, so a
+  // box added later doesn't inherit them (lib/birthday-mix).
+  const changeQuantity = (p: Product, quantity: number) => {
+    if (p.slug === BIRTHDAY_SLUG && quantity < birthdayMixes.length) saveBirthdayMixes(birthdayMixes.slice(0, Math.max(0, quantity)));
+    setQuantity(p.variantId, quantity);
+  };
+  const removeLine = (p: Product) => {
+    if (p.slug === BIRTHDAY_SLUG) saveBirthdayMixes([]);
+    remove(p.variantId);
+  };
 
   const byVariant = new Map<string, Product>((root?.products ?? []).map((p) => [p.variantId, p]));
   const items = lines
@@ -48,12 +61,12 @@ export default function Cart() {
   if (!items.length) {
     return (
       <section className="container flex min-h-[60vh] flex-col items-center justify-center gap-4 py-16 text-center">
-        <div className="flex size-16 items-center justify-center rounded-full bg-muted">
-          <ShoppingCart className="size-7 text-muted-foreground" />
+        <div className="flex size-20 items-center justify-center rounded-full bg-peach">
+          <ShoppingCart className="size-8" />
         </div>
-        <h1 className="text-2xl font-bold">Your basket is empty</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Your basket is empty</h1>
         <p className="text-muted-foreground">Looks like you haven't added anything yet.</p>
-        <Link to="/search" className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+        <Link to="/search" className="inline-flex h-12 items-center rounded-full bg-primary px-7 font-semibold text-primary-foreground transition-transform hover:scale-[1.03]">
           Continue Shopping
         </Link>
       </section>
@@ -62,34 +75,49 @@ export default function Cart() {
 
   return (
     <section className="container py-10 md:py-16">
-      <h1 className="text-3xl font-bold">Shopping Basket</h1>
+      <h1 className="text-4xl font-bold tracking-[-0.03em] md:text-5xl">Shopping Basket</h1>
       <p className="mt-1 text-muted-foreground">Review your items and complete your purchase securely</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-        <ul className="h-fit divide-y rounded-xl border">
+        <ul className="h-fit space-y-3">
           {items.map(({ line, product: p }) => (
-            <li key={line.variantId} className="flex gap-4 p-4">
-              <Link to={`/products/${p.slug}`} className="skeleton size-24 shrink-0 overflow-hidden rounded-lg">
-                {p.images[0] && <img ref={stopSkeleton} src={productImage(p.images[0], 200)} alt={p.title} width={96} height={96} className="size-full object-cover" />}
+            <li key={line.variantId} className="flex gap-4 rounded-3xl bg-peach/60 p-3 sm:p-4">
+              <Link to={`/products/${p.slug}`} className="skeleton size-24 shrink-0 overflow-hidden rounded-2xl bg-background">
+                {p.images[0] && (
+                  <img
+                    ref={stopSkeleton}
+                    src={productImage(p.images[0], 200)}
+                    alt={p.title}
+                    width={96}
+                    height={96}
+                    className={`size-full object-cover ${p.slug === BIRTHDAY_SLUG ? "" : "photo-blend"}`}
+                  />
+                )}
               </Link>
               <div className="flex flex-1 flex-col gap-1">
                 <div className="flex items-start justify-between gap-2">
-                  <Link to={`/products/${p.slug}`} className="font-medium hover:underline">
+                  <Link to={`/products/${p.slug}`} className="font-bold hover:underline">
                     {p.title}
                   </Link>
                   <span className="font-semibold">{formatMoney(effectivePrice(p) * line.quantity, p.currency)}</span>
                 </div>
                 <p className="text-sm text-muted-foreground">{formatMoney(effectivePrice(p), p.currency)} each</p>
+                {p.slug === BIRTHDAY_SLUG &&
+                  describeBoxes(birthdayMixes, line.quantity, root?.products ?? []).map((d) => (
+                    <p key={d} className="text-xs text-primary/80">
+                      🎉 {d}
+                    </p>
+                  ))}
                 <p className={`text-xs ${p.available ? "text-green-700" : "text-red-600"}`}>
                   {p.available ? "In Stock" : "Sold out — please remove it to continue"}
                 </p>
-                <div className="mt-auto flex items-center justify-between pt-2">
-                  <div className="flex items-center rounded-md border">
+                <div className="mt-auto flex items-center gap-2 pt-2">
+                  <div className="flex items-center rounded-full bg-background p-1">
                     <button
                       type="button"
                       aria-label={`Decrease ${p.title} quantity`}
-                      onClick={() => setQuantity(line.variantId, line.quantity - 1)}
-                      className="flex size-8 items-center justify-center hover:bg-muted"
+                      onClick={() => changeQuantity(p, line.quantity - 1)}
+                      className="flex size-8 items-center justify-center rounded-full hover:bg-lavender"
                     >
                       {line.quantity === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
                     </button>
@@ -99,13 +127,18 @@ export default function Cart() {
                     <button
                       type="button"
                       aria-label={`Increase ${p.title} quantity`}
-                      onClick={() => setQuantity(line.variantId, line.quantity + 1)}
-                      className="flex size-8 items-center justify-center hover:bg-muted"
+                      onClick={() => changeQuantity(p, line.quantity + 1)}
+                      className="flex size-8 items-center justify-center rounded-full hover:bg-lavender"
                     >
                       <Plus className="size-3.5" />
                     </button>
                   </div>
-                  <button type="button" onClick={() => remove(line.variantId)} className="text-sm text-muted-foreground underline-offset-2 hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => removeLine(p)}
+                    className="inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-primary/70 transition-colors hover:bg-background hover:text-primary"
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
                     Remove
                   </button>
                 </div>
@@ -114,8 +147,8 @@ export default function Cart() {
           ))}
         </ul>
 
-        <aside className="h-fit rounded-xl border p-6 lg:sticky lg:top-24">
-          <h2 className="text-lg font-semibold">Order Summary</h2>
+        <aside className="h-fit rounded-3xl bg-lavender/60 p-6 lg:sticky lg:top-24">
+          <h2 className="text-xl font-bold">Order Summary</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Subtotal</dt>
@@ -126,7 +159,7 @@ export default function Cart() {
               <dd className="text-muted-foreground">Calculated at checkout</dd>
             </div>
           </dl>
-          <hr className="my-4" />
+          <hr className="my-4 border-primary/10" />
           <div className="flex justify-between font-semibold">
             <span>Total</span>
             <span>{formatMoney(subtotal, currency)}</span>
@@ -134,7 +167,7 @@ export default function Cart() {
           <p className="mt-1 text-xs text-muted-foreground">Coupons will be applied at checkout.</p>
 
           {belowMinimum && (
-            <div className="mt-4 rounded-md bg-peach px-3 py-2 text-sm">
+            <div className="mt-4 rounded-2xl bg-peach px-4 py-3 text-sm">
               Minimum order is {formatMoney(MIN_ORDER_AMOUNT, currency)}. Add{" "}
               <strong>{formatMoney(MIN_ORDER_AMOUNT - subtotal, currency)}</strong> more to check out.
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
@@ -147,14 +180,14 @@ export default function Cart() {
             <button
               type="button"
               disabled
-              className="mt-4 inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground opacity-50"
+              className="mt-4 inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-full bg-primary px-4 font-semibold text-primary-foreground opacity-50"
             >
               Proceed to Checkout
             </button>
           ) : (
             <Link
               to="/checkout"
-              className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-full bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Proceed to Checkout
             </Link>
