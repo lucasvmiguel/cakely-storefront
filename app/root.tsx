@@ -13,7 +13,6 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { Analytics } from "./components/Analytics";
-import { AnnouncementBar } from "./components/AnnouncementBar";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { BasketBar } from "./components/BasketBar";
@@ -74,7 +73,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="flex min-h-dvh flex-col">
         <CartProvider>
-          <AnnouncementBar />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer markdownPath={markdownPathFor(pathname)} />

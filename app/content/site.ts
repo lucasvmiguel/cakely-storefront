@@ -31,11 +31,6 @@ export const site = {
   },
 } as const;
 
-export const announcements = [
-  { text: "WE DELIVER RIGHT TO YOUR DOOR IN AMSTERDAM" },
-  { text: "EXPLORE OUR LATEST CREATIONS", href: "/search" },
-] as const;
-
 /** Home page copy. The page (routes/home.tsx), its Markdown twin (/home.md)
  *  and the structured data all read it from here. */
 export const home = {
@@ -46,7 +41,6 @@ export const home = {
     // Cycles in the hero; screen readers and /home.md get `summary`.
     words: ["birthday", "movie night", "Sunday brunch", "date night", "just because"],
     summary: "birthday, movie night, or just because.",
-    tail: "Ordered today, cake this weekend.",
   },
   /** `birthdayPrice` is the formatted Birthday Special price, or null when it's not on sale. */
   ticker: (birthdayPrice: string | null) => [

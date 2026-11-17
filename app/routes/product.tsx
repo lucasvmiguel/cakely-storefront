@@ -129,9 +129,6 @@ function sanitize(html: string) {
     .replace(/<p>\s*<\/p>/gi, "");
 }
 
-// No announcement bar above product pages (components/AnnouncementBar.tsx).
-export const handle = { hideAnnouncement: true };
-
 const RELATED_LIST = "Related products";
 
 export default function ProductPage({ loaderData }: Route.ComponentProps) {

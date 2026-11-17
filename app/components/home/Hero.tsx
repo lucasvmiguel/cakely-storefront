@@ -110,8 +110,6 @@ export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) 
           <p className="rise-in text-lg text-lavender md:text-xl" style={{ "--i": 3 } as CSSProperties}>
             {home.plan.lead}{" "}
             <WordCycle words={home.plan.words} label={home.plan.summary} className="font-semibold text-peach" />
-            <br />
-            {home.plan.tail}
           </p>
           <div className="rise-in flex flex-wrap gap-3" style={{ "--i": 4 } as CSSProperties}>
             <a href="#flavours" className="group inline-flex h-13 items-center gap-2 rounded-full bg-peach px-7 font-bold text-primary transition-transform hover:scale-[1.03]">

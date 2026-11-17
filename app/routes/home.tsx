@@ -21,8 +21,8 @@ export function loader() {
 }
 
 // The header turns transparent over the purple hero and floats once scrolled
-// (components/Header.tsx); the announcement bar is left off this page.
-export const handle = { heroTone: "dark" as HeroTone, hideAnnouncement: true };
+// (components/Header.tsx).
+export const handle = { heroTone: "dark" as HeroTone };
 
 export function meta({ matches }: Route.MetaArgs) {
   const siteUrl = siteUrlFrom(matches);

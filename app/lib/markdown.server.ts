@@ -48,7 +48,7 @@ export function homeMarkdown(siteUrl: string, products: Product[]) {
     "",
     `![${site.name}](${absolute(siteUrl, site.logo)})`,
     "",
-    `${home.plan.lead} ${home.plan.summary} ${home.plan.tail}`,
+    `${home.plan.lead} ${home.plan.summary}`,
     "",
     contactBlock(),
     `## ${home.flavours.title.replace(/\.$/, "")}`,
