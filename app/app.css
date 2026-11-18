@@ -302,3 +302,39 @@
 .logo-on-dark {
   filter: brightness(0) invert(93%) sepia(9%) saturate(780%) hue-rotate(318deg) brightness(103%);
 }
+
+/* Experiment (dev only, lib/experiments.ts): product, basket and checkout in a
+   dark purple theme. Tailwind's colours are variables, so redefining them
+   inside <main data-theme="purple"> recolours the page. */
+[data-theme="purple"] {
+  --color-background: #1e0e44;
+  --color-foreground: #ffead8;
+  --color-primary: #ffead8;
+  --color-primary-foreground: #2a1458;
+  --color-peach: #2f1a63;
+  --color-lavender: #3b2775;
+  --color-plum: #cbbcf6;
+  --color-muted: #2f1a63;
+  --color-muted-foreground: #cbbcf6;
+  --color-border: rgb(255 255 255 / 0.14);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+/* Photos sit on light tiles here instead of melting into dark ones. */
+[data-theme="purple"] .photo-blend {
+  mix-blend-mode: normal;
+  filter: none;
+}
+[data-theme="purple"] .text-green-700 {
+  color: #86efac;
+}
+[data-theme="purple"] .text-red-600,
+[data-theme="purple"] .text-red-700 {
+  color: #fca5a5;
+}
+[data-theme="purple"] .bg-red-50 {
+  background-color: rgb(127 29 29 / 0.35);
+}
+[data-theme="purple"] .text-neutral-600 {
+  color: var(--color-muted-foreground);
+}

@@ -12,5 +12,7 @@ export async function loadHomeData() {
   // Sold-out cakes stay on /search but are left off the home page.
   const cakeIds = products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.available).map((p) => p.id);
   const birthdayId = products.find((p) => p.slug === BIRTHDAY_SLUG && p.available)?.id ?? null;
-  return { cakeIds, birthdayId, reviews, firstDelivery: firstDeliveryDate() };
+  // The hero's rolling jar cards show every mini cake, sold-out ones too.
+  const wallIds = products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.images.length).map((p) => p.id);
+  return { cakeIds, birthdayId, wallIds, reviews, firstDelivery: firstDeliveryDate() };
 }

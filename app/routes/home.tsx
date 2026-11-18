@@ -37,10 +37,11 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { cakeIds, birthdayId, reviews, firstDelivery } = loaderData;
+  const { cakeIds, birthdayId, wallIds, reviews, firstDelivery } = loaderData;
   const products = useRootData()?.products ?? [];
   const cakes = cakeIds.map((id) => products.find((p) => p.id === id)).filter((p): p is Product => !!p);
   const birthday = products.find((p) => p.id === birthdayId) ?? null;
+  const wall = wallIds.map((id) => products.find((p) => p.id === id)).filter((p): p is Product => !!p);
   const birthdayPrice = birthday ? formatMoney(effectivePrice(birthday), birthday.currency) : null;
 
   useEffect(() => {
@@ -50,20 +51,15 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <Hero cakes={cakes} birthday={birthday} />
+      <Hero cakes={cakes} birthday={birthday} wall={wall} />
       <TiltedTicker below="var(--color-peach)" overlap duration="60s" items={home.ticker(birthdayPrice)} />
 
       <FlavourCarousel cakes={cakes} birthday={birthday} partyHref="#build" />
 
       {birthday && (
         <>
-          <TiltedTicker
-            below="var(--color-lavender)"
-            overlap
-            tilt="up"
-            duration="60s"
-            items={home.birthday.ticker(birthdayPrice ?? "")}
-          />
+          {/* A plain purple line between the flavours and the birthday builder. */}
+          <div className="h-1 bg-primary" aria-hidden="true" />
           <BirthdayBuilder cakes={cakes} birthday={birthday} />
         </>
       )}

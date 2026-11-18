@@ -37,6 +37,12 @@ A few things live in this repo instead:
 
 **Birthday box flavours.** In the birthday section, customers pick the ten cakes that go in a Birthday Special (or tap "Surprise me"). Hostinger orders have no notes field, so the choice is kept next to the basket (`app/lib/birthday-mix.ts`), shown in the basket and checkout, and added to the order's second address line after the delivery date, for example "Delivery: Saturday 7 November 2026 · Birthday box: 4 Coconut, 3 Chocolate, 3 Lemon". It shows in the dashboard and order emails. A Birthday Special added from its product page says "mixed by us".
 
+**Design experiments.** On the dev server (`npm run dev`) an "Experiments" button in the bottom-left corner switches on, for this browser only:
+- **3D jar hero:** a three.js jar of cake on a chocolate splash in place of the rolling jar cards.
+- **Purple theme:** the product, basket and checkout pages in dark purple.
+
+Production builds leave the panel and three.js out (`app/lib/experiments.ts`, `app/components/experiments/`).
+
 **Basket bar.** Once something is in the basket, a bar at the bottom of every page (except the basket and checkout) shows the total, progress to the €20 minimum and a link to the basket or checkout.
 
 ## SEO and LLM support

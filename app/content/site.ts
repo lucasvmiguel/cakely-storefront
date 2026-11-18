@@ -56,7 +56,6 @@ export const home = {
     title: ["Plan the party.", "Pick all ten."],
     /** `price` is the formatted Birthday Special price. */
     body: (price: string) => `Ten handmade mini cakes in one box for ${price}, made for sharing.`,
-    ticker: (price: string) => ["Planning a birthday?", "10 cakes, 1 party", `Only ${price}`, "Pick every flavour", "No knife, no plates"],
   },
   howTo: {
     title: "How it works.",

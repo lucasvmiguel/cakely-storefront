@@ -2,14 +2,18 @@
 // columns of jar cards roll up and down on the right (sliding out from under
 // the ticker below), on phones one row rolls sideways.
 import { ArrowRight } from "lucide-react";
-import type { CSSProperties } from "react";
+import { lazy, Suspense, type CSSProperties } from "react";
 import { Link } from "react-router";
 import { home } from "~/content/site";
+import { useExperiments } from "~/lib/experiments";
 import { track } from "~/lib/analytics";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { productImage, stopSkeleton } from "~/lib/images";
 import { formatMoney } from "~/lib/money";
 import { cakeHref, fromPrice, HOME_LIST, useHydrated, WordCycle, type HomeData } from "./kit";
+
+// Dev-server experiment; production builds drop it (import.meta.env.DEV is false there).
+const Jar3D = import.meta.env.DEV ? lazy(() => import("~/components/experiments/Jar3D")) : null;
 
 // The rolling rows need their items twice (or more) to loop seamlessly. The
 // server sends them once, which keeps the HTML small for the first paint; the
@@ -27,7 +31,6 @@ function JarColumn({ cakes, reverse, duration }: { cakes: Product[]; reverse?: b
             <img src={productImage(c.images[0] ?? "", 320)} alt="" width={320} height={320} loading="lazy" className="photo-blend size-full object-cover" />
             <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-peach">
               <span className="truncate">{c.title}</span>
-              <span className="shrink-0 font-medium text-lavender">{formatMoney(effectivePrice(c), c.currency)}</span>
             </span>
           </div>
         ))}
@@ -69,7 +72,6 @@ function JarRow({ items, reverse = false, duration }: { items: Product[]; revers
             </span>
             <span className="flex items-center justify-between gap-2 px-2 pb-1 pt-2 text-sm font-bold">
               <span className="truncate">{c.title}</span>
-              <span className="shrink-0 font-semibold text-plum">{formatMoney(effectivePrice(c), c.currency)}</span>
             </span>
           </Link>
         </li>
@@ -86,10 +88,12 @@ function JarRow({ items, reverse = false, duration }: { items: Product[]; revers
   );
 }
 
-export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) {
+export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthday"> & { wall: Product[] }) {
   const hydrated = useHydrated();
+  const [{ hero3d }] = useExperiments();
   const from = fromPrice(cakes);
-  const rolling = [...cakes, ...(birthday ? [birthday] : [])];
+  // Every mini cake, sold-out ones included; no Birthday Special.
+  const rolling = wall;
   return (
     <section className="relative overflow-hidden bg-primary pt-16 text-peach">
       <div className="pointer-events-none absolute -right-40 -top-40 size-[36rem] rounded-full bg-plum/40 blur-3xl" aria-hidden="true" />
@@ -128,7 +132,15 @@ export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) 
           </div>
         </div>
 
+        {/* Experiment (dev only): a 3D jar on a chocolate splash instead of the jar wall. */}
+        {Jar3D && hero3d && (
+          <Suspense fallback={null}>
+            <Jar3D className="rise-in h-[22rem] lg:h-full" />
+          </Suspense>
+        )}
+
         {/* Desktop: two columns of jars rolling up and down, sliding out from under the ticker (decorative; the gallery below lists every cake) */}
+        {!hero3d && (
         <div
           aria-hidden="true"
           className="rise-in hidden h-full grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%)] lg:grid"
@@ -143,9 +155,11 @@ export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) 
             </>
           )}
         </div>
+        )}
       </div>
 
       {/* Phones: one row of jar cards rolling sideways */}
+      {!hero3d && (
       <div
         className="rise-in pb-10 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] lg:hidden"
         style={{ "--i": 4 } as CSSProperties}
@@ -154,6 +168,7 @@ export function Hero({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) 
       >
         <JarRow items={rolling} duration={`${Math.max(24, rolling.length * 7)}s`} />
       </div>
+      )}
     </section>
   );
 }

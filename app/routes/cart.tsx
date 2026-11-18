@@ -12,6 +12,9 @@ import { MIN_ORDER_AMOUNT } from "~/lib/config";
 import { EUR, formatMoney } from "~/lib/money";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
 
+// Can take the dark purple theme experiment (root.tsx, lib/experiments.ts).
+export const handle = { themeable: true };
+
 export function meta({ matches }: Route.MetaArgs) {
   return pageMeta({
     siteUrl: siteUrlFrom(matches),

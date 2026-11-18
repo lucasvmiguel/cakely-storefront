@@ -210,16 +210,11 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
               )}
             </div>
             <div className="mt-5 border-t border-peach/15 pt-4">
-              <div className="mb-3 flex items-baseline justify-between">
-                <span className="text-sm text-lavender">10 mini cakes</span>
+              <div className="mb-3 flex items-baseline justify-end">
                 <span className="text-2xl font-bold">{price}</span>
               </div>
-              <p className="mb-4 text-sm text-lavender" aria-live="polite">
-                {left === BIRTHDAY_SIZE
-                  ? "Pick ten flavours, or tap Surprise me."
-                  : left > 0
-                    ? `${left} more to go.`
-                    : "Your box is full. Ready for the party!"}
+              <p className="mb-4 min-h-5 text-sm text-lavender" aria-live="polite">
+                {left === BIRTHDAY_SIZE ? "" : left > 0 ? `${left} more to go.` : "Your box is full. Ready for the party!"}
               </p>
               <button
                 type="button"
