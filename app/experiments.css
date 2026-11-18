@@ -1,0 +1,54 @@
+/* Styles for the dev-only design experiments (lib/experiments.ts). Only the
+   experiments panel and the experiment components import this file, and they
+   are dropped from production builds, so none of it ships. The main
+   stylesheet skips app/components/experiments (@source not in app.css); this
+   file generates the utilities those components use. */
+@import "tailwindcss/utilities.css" source(none);
+@source "./components/experiments";
+
+/* Experiment (dev only, lib/experiments.ts): every page except home in the
+   palette of the home page's birthday section: a lavender page, white cards,
+   purple text and buttons, and deep purple panels (.theme-accent) with peach
+   text. Tailwind's colours are variables, so redefining them inside
+   <main data-theme="lavender"> recolours the page. */
+[data-theme="lavender"] {
+  --color-peach: #ffffff;
+  --color-lavender: #f3f1ff;
+  --color-muted: #f3f1ff;
+  --color-muted-foreground: #574a85;
+  --color-border: rgb(42 20 88 / 0.12);
+  background-color: #e7e5ff;
+}
+[data-theme="lavender"] .theme-accent {
+  --color-foreground: #ffead8;
+  --color-primary: #ffead8;
+  --color-primary-foreground: #2a1458;
+  --color-muted-foreground: #e7e5ff;
+  --color-background: rgb(255 255 255 / 0.1);
+  --color-border: rgb(255 255 255 / 0.16);
+  background-color: #2a1458;
+  color: #ffead8;
+}
+[data-theme="lavender"] .theme-accent .text-green-700 {
+  color: #86efac;
+}
+
+/* Experiment (dev only): the depth jar hero (components/experiments/JarDepth.tsx).
+   The sway rotates the whole scene; drops bob with `translate`, which adds to
+   each layer's own `transform` (its depth) instead of replacing it. */
+@media (prefers-reduced-motion: no-preference) {
+  .depth-sway {
+    animation: depth-sway 9s ease-in-out infinite;
+  }
+  .depth-drop {
+    animation: depth-drop 3.6s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+}
+@keyframes depth-sway {
+  0%, 100% { transform: rotateX(5deg) rotateY(-12deg); }
+  50% { transform: rotateX(-3deg) rotateY(12deg); }
+}
+@keyframes depth-drop {
+  50% { translate: 0 -12px; }
+}

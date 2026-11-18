@@ -13,7 +13,7 @@ import { formatMoney } from "~/lib/money";
 import { cakeHref, fromPrice, HOME_LIST, useHydrated, WordCycle, type HomeData } from "./kit";
 
 // Dev-server experiment; production builds drop it (import.meta.env.DEV is false there).
-const Jar3D = import.meta.env.DEV ? lazy(() => import("~/components/experiments/Jar3D")) : null;
+const JarDepth = import.meta.env.DEV ? lazy(() => import("~/components/experiments/JarDepth")) : null;
 
 // The rolling rows need their items twice (or more) to loop seamlessly. The
 // server sends them once, which keeps the HTML small for the first paint; the
@@ -132,10 +132,10 @@ export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthd
           </div>
         </div>
 
-        {/* Experiment (dev only): a 3D jar on a chocolate splash instead of the jar wall. */}
-        {Jar3D && hero3d && (
+        {/* Experiment (dev only): jar photos in a layered, tilting chocolate splash instead of the jar wall. */}
+        {JarDepth && hero3d && (
           <Suspense fallback={null}>
-            <Jar3D className="rise-in h-[22rem] lg:h-full" />
+            <JarDepth cakes={rolling} className="rise-in h-[24rem] lg:h-full" />
           </Suspense>
         )}
 

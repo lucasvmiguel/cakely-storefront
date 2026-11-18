@@ -12,9 +12,6 @@ import { MIN_ORDER_AMOUNT } from "~/lib/config";
 import { EUR, formatMoney } from "~/lib/money";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
 
-// Can take the dark purple theme experiment (root.tsx, lib/experiments.ts).
-export const handle = { themeable: true };
-
 export function meta({ matches }: Route.MetaArgs) {
   return pageMeta({
     siteUrl: siteUrlFrom(matches),
@@ -150,7 +147,7 @@ export default function Cart() {
           ))}
         </ul>
 
-        <aside className="h-fit rounded-3xl bg-lavender/60 p-6 lg:sticky lg:top-24">
+        <aside className="theme-accent h-fit rounded-3xl bg-lavender/60 p-6 lg:sticky lg:top-24">
           <h2 className="text-xl font-bold">Order Summary</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">

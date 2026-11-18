@@ -129,9 +129,6 @@ function sanitize(html: string) {
     .replace(/<p>\s*<\/p>/gi, "");
 }
 
-// Can take the dark purple theme experiment (root.tsx, lib/experiments.ts).
-export const handle = { themeable: true };
-
 const RELATED_LIST = "Related products";
 
 export default function ProductPage({ loaderData }: Route.ComponentProps) {

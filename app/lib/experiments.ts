@@ -5,15 +5,16 @@
 import { useCallback, useEffect, useState } from "react";
 
 export type Experiments = {
-  /** Home hero: a 3D jar of cake on a chocolate splash instead of the jar wall. */
+  /** Home hero: jar photos in a layered, tilting chocolate splash instead of the jar wall. */
   hero3d: boolean;
-  /** Product, basket and checkout pages in a dark purple theme. */
-  purpleTheme: boolean;
+  /** Every page except home in the lavender / white / purple palette of the
+   *  home page's birthday section. */
+  lavenderTheme: boolean;
 };
 
 const KEY = "cakely-experiments";
 const EVENT = "cakely-experiments";
-const OFF: Experiments = { hero3d: false, purpleTheme: false };
+const OFF: Experiments = { hero3d: false, lavenderTheme: false };
 
 function read(): Experiments {
   if (!import.meta.env.DEV) return OFF;

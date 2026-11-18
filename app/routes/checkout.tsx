@@ -27,9 +27,6 @@ import { EUR, formatMoney } from "~/lib/money";
 import { useRootData } from "~/lib/root-data";
 import { pageMeta, siteUrlFrom } from "~/lib/seo";
 
-// Can take the dark purple theme experiment (root.tsx, lib/experiments.ts).
-export const handle = { themeable: true };
-
 export function meta({ matches }: Route.MetaArgs) {
   return pageMeta({
     siteUrl: siteUrlFrom(matches),
@@ -476,7 +473,7 @@ export default function Checkout() {
           </button>
         </form>
 
-        <aside className="h-fit space-y-4 rounded-3xl bg-lavender/60 p-6 lg:sticky lg:top-24">
+        <aside className="theme-accent h-fit space-y-4 rounded-3xl bg-lavender/60 p-6 lg:sticky lg:top-24">
           <h2 className="text-xl font-bold">Order Summary</h2>
           <ul className="space-y-3">
             {items.map(({ line, product: p }) => (

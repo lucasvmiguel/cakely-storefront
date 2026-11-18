@@ -3,10 +3,11 @@
 import { FlaskConical } from "lucide-react";
 import { useState } from "react";
 import { useExperiments, type Experiments } from "~/lib/experiments";
+import "~/experiments.css";
 
 const options: { key: keyof Experiments; label: string; hint: string }[] = [
-  { key: "hero3d", label: "3D jar hero", hint: "Home: jar on a chocolate splash" },
-  { key: "purpleTheme", label: "Purple theme", hint: "Product, basket, checkout" },
+  { key: "hero3d", label: "Depth jar hero", hint: "Home: jar photos on a chocolate splash" },
+  { key: "lavenderTheme", label: "Lavender theme", hint: "Every page except home" },
 ];
 
 export function ExperimentsPanel() {

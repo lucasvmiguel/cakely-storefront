@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   isRouteErrorResponse,
   useRouteLoaderData,
@@ -8,7 +9,6 @@ import {
   Scripts,
   ScrollRestoration,
   useLocation,
-  useMatches,
 } from "react-router";
 
 import type { Route } from "./+types/root";
@@ -18,13 +18,18 @@ import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { BasketBar } from "./components/BasketBar";
 import { CookieBanner, InstagramFab } from "./components/Overlays";
-import { ExperimentsPanel } from "./components/ExperimentsPanel";
 import { useExperiments } from "./lib/experiments";
 import { site } from "./content/site";
 import { CartProvider } from "./lib/cart";
 import { DEFAULT_GA_MEASUREMENT_ID, DEFAULT_META_PIXEL_ID } from "./lib/config";
 import { siteUrl } from "./lib/site-url.server";
 import { getProducts, SALES_CHANNEL_ID } from "./lib/hostinger.server";
+
+// Dev-only experiments panel, loaded lazily so production builds drop it and
+// its stylesheet entirely (import.meta.env.DEV is false there).
+const ExperimentsPanel = import.meta.env.DEV
+  ? lazy(() => import("./components/ExperimentsPanel").then((m) => ({ default: m.ExperimentsPanel })))
+  : null;
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", href: site.favicon, type: "image/png" },
@@ -65,10 +70,9 @@ function markdownPathFor(pathname: string) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const data = useRouteLoaderData<typeof loader>("root");
-  // Experiment (dev only): pages with `handle = { themeable: true }` can switch
-  // to the dark purple theme (app.css, [data-theme="purple"]).
-  const themeable = useMatches().some((m) => (m.handle as { themeable?: boolean } | undefined)?.themeable);
-  const [{ purpleTheme }] = useExperiments();
+  // Experiment (dev only): every page except home in the lavender theme
+  // (app.css, [data-theme="lavender"]).
+  const [{ lavenderTheme }] = useExperiments();
   return (
     <html lang="en-NL">
       <head>
@@ -81,14 +85,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body className="flex min-h-dvh flex-col">
         <CartProvider>
           <Header />
-          <main className="flex-1" data-theme={themeable && purpleTheme ? "purple" : undefined}>
+          <main className="flex-1" data-theme={lavenderTheme && pathname !== "/" ? "lavender" : undefined}>
             {children}
           </main>
           <Footer markdownPath={markdownPathFor(pathname)} />
           <InstagramFab />
           <CookieBanner />
           <BasketBar />
-          {import.meta.env.DEV && <ExperimentsPanel />}
+          {ExperimentsPanel && (
+            <Suspense fallback={null}>
+              <ExperimentsPanel />
+            </Suspense>
+          )}
           {data && <Analytics gaId={data.analytics.gaId || null} pixelId={data.analytics.pixelId || null} />}
         </CartProvider>
         <ScrollRestoration />
