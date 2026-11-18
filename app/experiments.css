@@ -1,10 +1,6 @@
 /* Styles for the dev-only design experiments (lib/experiments.ts). Only the
-   experiments panel and the experiment components import this file, and they
-   are dropped from production builds, so none of it ships. The main
-   stylesheet skips app/components/experiments (@source not in app.css); this
-   file generates the utilities those components use. */
-@import "tailwindcss/utilities.css" source(none);
-@source "./components/experiments";
+   experiments panel imports this file, and production builds drop the panel,
+   so none of it ships. */
 
 /* Experiment (dev only, lib/experiments.ts): every page except home in the
    palette of the home page's birthday section: a lavender page, white cards,
@@ -29,26 +25,15 @@
   background-color: #2a1458;
   color: #ffead8;
 }
+/* Page banners (the shop's "Shop all cakes."): purple like the home hero,
+   continuing the purple navbar above. */
+[data-theme="lavender"] .theme-hero {
+  --color-foreground: #ffead8;
+  --color-plum: #cbbcf6;
+  background-color: #2a1458;
+  color: #ffead8;
+  padding-bottom: 1.5rem;
+}
 [data-theme="lavender"] .theme-accent .text-green-700 {
   color: #86efac;
-}
-
-/* Experiment (dev only): the depth jar hero (components/experiments/JarDepth.tsx).
-   The sway rotates the whole scene; drops bob with `translate`, which adds to
-   each layer's own `transform` (its depth) instead of replacing it. */
-@media (prefers-reduced-motion: no-preference) {
-  .depth-sway {
-    animation: depth-sway 9s ease-in-out infinite;
-  }
-  .depth-drop {
-    animation: depth-drop 3.6s ease-in-out infinite;
-    animation-delay: var(--d, 0s);
-  }
-}
-@keyframes depth-sway {
-  0%, 100% { transform: rotateX(5deg) rotateY(-12deg); }
-  50% { transform: rotateX(-3deg) rotateY(12deg); }
-}
-@keyframes depth-drop {
-  50% { translate: 0 -12px; }
 }

@@ -2,18 +2,14 @@
 // columns of jar cards roll up and down on the right (sliding out from under
 // the ticker below), on phones one row rolls sideways.
 import { ArrowRight } from "lucide-react";
-import { lazy, Suspense, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import { Link } from "react-router";
 import { home } from "~/content/site";
-import { useExperiments } from "~/lib/experiments";
 import { track } from "~/lib/analytics";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { productImage, stopSkeleton } from "~/lib/images";
 import { formatMoney } from "~/lib/money";
 import { cakeHref, fromPrice, HOME_LIST, useHydrated, WordCycle, type HomeData } from "./kit";
-
-// Dev-server experiment; production builds drop it (import.meta.env.DEV is false there).
-const JarDepth = import.meta.env.DEV ? lazy(() => import("~/components/experiments/JarDepth")) : null;
 
 // The rolling rows need their items twice (or more) to loop seamlessly. The
 // server sends them once, which keeps the HTML small for the first paint; the
@@ -90,7 +86,6 @@ function JarRow({ items, reverse = false, duration }: { items: Product[]; revers
 
 export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthday"> & { wall: Product[] }) {
   const hydrated = useHydrated();
-  const [{ hero3d }] = useExperiments();
   const from = fromPrice(cakes);
   // Every mini cake, sold-out ones included; no Birthday Special.
   const rolling = wall;
@@ -132,15 +127,7 @@ export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthd
           </div>
         </div>
 
-        {/* Experiment (dev only): jar photos in a layered, tilting chocolate splash instead of the jar wall. */}
-        {JarDepth && hero3d && (
-          <Suspense fallback={null}>
-            <JarDepth cakes={rolling} className="rise-in h-[24rem] lg:h-full" />
-          </Suspense>
-        )}
-
         {/* Desktop: two columns of jars rolling up and down, sliding out from under the ticker (decorative; the gallery below lists every cake) */}
-        {!hero3d && (
         <div
           aria-hidden="true"
           className="rise-in hidden h-full grid-cols-2 gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%)] lg:grid"
@@ -155,11 +142,9 @@ export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthd
             </>
           )}
         </div>
-        )}
       </div>
 
       {/* Phones: one row of jar cards rolling sideways */}
-      {!hero3d && (
       <div
         className="rise-in pb-10 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] lg:hidden"
         style={{ "--i": 4 } as CSSProperties}
@@ -168,7 +153,6 @@ export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthd
       >
         <JarRow items={rolling} duration={`${Math.max(24, rolling.length * 7)}s`} />
       </div>
-      )}
     </section>
   );
 }

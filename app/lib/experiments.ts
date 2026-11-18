@@ -5,8 +5,6 @@
 import { useCallback, useEffect, useState } from "react";
 
 export type Experiments = {
-  /** Home hero: jar photos in a layered, tilting chocolate splash instead of the jar wall. */
-  hero3d: boolean;
   /** Every page except home in the lavender / white / purple palette of the
    *  home page's birthday section. */
   lavenderTheme: boolean;
@@ -14,7 +12,7 @@ export type Experiments = {
 
 const KEY = "cakely-experiments";
 const EVENT = "cakely-experiments";
-const OFF: Experiments = { hero3d: false, lavenderTheme: false };
+const OFF: Experiments = { lavenderTheme: false };
 
 function read(): Experiments {
   if (!import.meta.env.DEV) return OFF;

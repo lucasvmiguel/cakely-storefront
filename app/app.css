@@ -1,6 +1,4 @@
 @import "tailwindcss";
-/* Dev-only experiments have their own stylesheet (experiments.css). */
-@source not "./components/experiments";
 
 /* Poppins, self-hosted (SIL Open Font License) so the first paint doesn't wait
    on Google Fonts. Latin subset only. */

@@ -6,7 +6,6 @@ import { useExperiments, type Experiments } from "~/lib/experiments";
 import "~/experiments.css";
 
 const options: { key: keyof Experiments; label: string; hint: string }[] = [
-  { key: "hero3d", label: "Depth jar hero", hint: "Home: jar photos on a chocolate splash" },
   { key: "lavenderTheme", label: "Lavender theme", hint: "Every page except home" },
 ];
 

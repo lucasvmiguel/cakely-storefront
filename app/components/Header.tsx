@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useMatches } from "react-router";
 import { site } from "~/content/site";
 import { useCart } from "~/lib/cart";
+import { useExperiments } from "~/lib/experiments";
 
 const iconButton =
   "inline-flex size-9 items-center justify-center rounded-md transition-colors hover:bg-current/10";
@@ -48,6 +49,12 @@ export function Header() {
   // Every page floats the header as a pill once scrolled.
   const floating = scrolled;
   const blended = tone != null && !scrolled;
+  // Experiment (dev only): with the lavender theme, other pages get the home
+  // page's purple bar, and it stays purple as a floating pill once scrolled.
+  const [{ lavenderTheme }] = useExperiments();
+  const purpleBar = tone == null && lavenderTheme;
+  // Peach logo and badge whenever the bar under them is purple.
+  const onDark = (blended && tone === "dark") || purpleBar;
 
   // Close the drawer whenever we navigate.
   useEffect(() => setOpen(false), [location.pathname]);
@@ -68,14 +75,20 @@ export function Header() {
       <header
         className={`sticky top-0 z-50 transition-colors duration-300 ${
           tone == null
-            ? `text-foreground ${floating ? "bg-transparent" : "bg-peach"}`
+            ? floating
+              ? `bg-transparent ${purpleBar ? "text-peach" : "text-foreground"}`
+              : purpleBar
+                ? "bg-primary text-peach"
+                : "bg-peach text-foreground"
             : `-mb-16 bg-transparent ${blended ? toneText[tone] : "text-foreground"}`
         }`}
       >
         <div
           className={`relative flex items-center justify-between px-2 transition-all duration-300 sm:px-6 ${
             floating
-              ? "mx-2 mt-2 h-14 rounded-full bg-peach/95 shadow-lg shadow-primary/10 ring-1 ring-primary/10 sm:mx-4"
+              ? `mx-2 mt-2 h-14 rounded-full shadow-lg shadow-primary/10 ring-1 sm:mx-4 ${
+                  purpleBar ? "bg-primary/95 ring-white/10" : "bg-peach/95 ring-primary/10"
+                }`
               : "h-16"
           }`}
         >
@@ -93,7 +106,7 @@ export function Header() {
               alt="Cakely"
               width={144}
               height={144}
-              className={`h-36 w-auto max-w-none transition-[filter] duration-300 sm:h-44 ${blended && tone === "dark" ? "logo-on-dark" : ""}`}
+              className={`h-36 w-auto max-w-none transition-[filter] duration-300 sm:h-44 ${onDark ? "logo-on-dark" : ""}`}
             />
           </Link>
 
@@ -104,7 +117,7 @@ export function Header() {
             <Link to="/cart" className={`${iconButton} relative`} aria-label={`Basket, ${count} items`}>
               <ShoppingCart className="size-5" />
               {count > 0 && (
-                <span className={`absolute -right-0.5 -top-0.5 flex min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-4.5 ${blended && tone === "dark" ? "bg-peach text-primary" : "bg-primary text-primary-foreground"}`}>
+                <span className={`absolute -right-0.5 -top-0.5 flex min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-4.5 ${onDark ? "bg-peach text-primary" : "bg-primary text-primary-foreground"}`}>
                   {count}
                 </span>
               )}

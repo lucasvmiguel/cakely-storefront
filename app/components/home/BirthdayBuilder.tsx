@@ -1,12 +1,12 @@
 // "Build your birthday box": pick the 10 cakes that go in a Birthday Special.
 // The mix is saved next to the basket (lib/birthday-mix) and sent with the
 // order. Boxes added elsewhere without a mix are mixed by the bakery.
-import { Minus, PartyPopper, Plus, Shuffle, Trash2 } from "lucide-react";
+import { Minus, PartyPopper, Plus, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Link, useRouteLoaderData } from "react-router";
+import { Link } from "react-router";
 import { home } from "~/content/site";
 import { track } from "~/lib/analytics";
-import { BIRTHDAY_SIZE, describeMix, mixCount, useBirthdayMixes, type Mix } from "~/lib/birthday-mix";
+import { BIRTHDAY_SIZE, useBirthdayMixes, type Mix } from "~/lib/birthday-mix";
 import { useCart } from "~/lib/cart";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { productImage } from "~/lib/images";
@@ -54,7 +54,7 @@ function Slots({ jars, size = "lg" }: { jars: Product[]; size?: "sm" | "lg" }) {
 }
 
 export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "birthday">) {
-  const { lines, add, setQuantity } = useCart();
+  const { lines, add } = useCart();
   const [mixes, saveMixes] = useBirthdayMixes();
   // Variant ids in the order they were picked, so jars fill the box in turn.
   const [picks, setPicks] = useState<string[]>([]);
@@ -64,8 +64,6 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
     timers.current = [];
   };
   useEffect(() => stopFilling, []);
-  const root = useRouteLoaderData("root") as { products?: Product[] } | undefined;
-  const products = root?.products ?? [];
 
   if (!birthday || cakes.length === 0) return null;
 
@@ -75,7 +73,6 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
   const jars = picks.map((id) => cakes.find((c) => c.variantId === id)).filter((c): c is Product => !!c);
   const price = formatMoney(effectivePrice(birthday), birthday.currency);
   const inBasket = lines.find((l) => l.variantId === birthday.variantId)?.quantity ?? 0;
-  const boxes = Array.from({ length: inBasket }, (_, i) => mixes[i]);
 
   const change = (c: Product, delta: number) => {
     stopFilling();
@@ -111,13 +108,6 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
     add(birthday.variantId);
     track.addToCart(birthday, 1, HOME_LIST);
     setPicks([]);
-  };
-
-  const removeBox = (i: number) => {
-    const aligned = Array.from({ length: inBasket }, (_, n) => mixes[n] ?? {});
-    aligned.splice(i, 1);
-    saveMixes(aligned);
-    setQuantity(birthday.variantId, inBasket - 1);
   };
 
   return (
@@ -226,31 +216,6 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
               </button>
             </div>
 
-            {inBasket > 0 && (
-              <div className="mt-5 border-t border-peach/15 pt-4">
-                <p className="mb-2 text-sm font-semibold">In your basket</p>
-                <ul className="space-y-2">
-                  {boxes.map((m, i) => (
-                    <li key={i} className="flex items-start justify-between gap-3 rounded-2xl bg-peach/10 px-3 py-2 text-sm">
-                      <span>
-                        <span className="font-semibold">Box {i + 1}:</span> {m && mixCount(m) > 0 ? describeMix(m, products) : "mixed by us"}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label={`Remove birthday box ${i + 1}`}
-                        onClick={() => removeBox(i)}
-                        className="shrink-0 rounded-full p-1 text-lavender hover:bg-peach/15 hover:text-peach"
-                      >
-                        <Trash2 className="size-4" aria-hidden="true" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/cart" className="mt-3 inline-block text-sm font-semibold underline underline-offset-4">
-                  Go to basket
-                </Link>
-              </div>
-            )}
           </div>
         </aside>
       </div>

@@ -36,7 +36,6 @@ test("@purchase a birthday box built on the home page goes to the order with its
 
   await addBox(page).click();
   await expect(basketLink(page)).toHaveAccessibleName("Basket, 1 items");
-  await expect(box(page)).toContainText("Box 1: 4 Coconut, 3 Chocolate, 3 Lemon");
   // The builder is ready for another box.
   await expect(box(page)).toContainText("0 / 10");
 
@@ -67,7 +66,7 @@ test("Surprise me fills the box with ten, spread over the flavours", async ({ pa
   expect(Object.keys(mix).sort()).toEqual(["var_choco", "var_coconut", "var_lemon"]);
 });
 
-test("each birthday box keeps its own flavours, and removing one drops only its mix", async ({ page }) => {
+test("each birthday box keeps its own flavours", async ({ page }) => {
   await page.goto("/");
   await pick(page, "Coconut", 10);
   await addBox(page).click();
@@ -75,13 +74,10 @@ test("each birthday box keeps its own flavours, and removing one drops only its 
   await addBox(page).click();
 
   await expect(basketLink(page)).toHaveAccessibleName("Basket, 2 items");
-  await expect(box(page)).toContainText("Box 1: 10 Coconut");
-  await expect(box(page)).toContainText("Box 2: 10 Lemon");
-
-  await box(page).getByRole("button", { name: "Remove birthday box 1" }).click();
-  await expect(basketLink(page)).toHaveAccessibleName("Basket, 1 items");
-  await expect(box(page)).toContainText("Box 1: 10 Lemon");
-  expect(await savedMixes(page)).toEqual([{ var_lemon: 10 }]);
+  expect(await savedMixes(page)).toEqual([{ var_coconut: 10 }, { var_lemon: 10 }]);
+  await basketLink(page).click();
+  await expect(page.getByText("Box 1: 10 Coconut")).toBeVisible();
+  await expect(page.getByText("Box 2: 10 Lemon")).toBeVisible();
 });
 
 test("a Birthday Special added from its product page is mixed by the bakery", async ({ page, hostinger }) => {

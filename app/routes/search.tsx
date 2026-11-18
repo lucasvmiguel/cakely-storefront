@@ -133,7 +133,7 @@ export default function Search({ loaderData }: Route.ComponentProps) {
 
   return (
     <section className="pb-16">
-      <div className="bg-peach">
+      <div className="theme-hero bg-peach">
         <div className="container py-10 text-center md:py-14">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-plum">Handmade in Amsterdam</p>
           <h1 className="mt-2 text-4xl font-bold tracking-[-0.03em] md:text-6xl">Shop all cakes.</h1>
