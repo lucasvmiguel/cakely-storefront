@@ -18,7 +18,7 @@ const socials = [
 ];
 
 export function Footer({ markdownPath }: { markdownPath: string | null }) {
-  // Experiment (dev only): a deep purple footer with the lavender theme
+  // Experiment (dev only): a lighter purple footer with the lavender theme
   // (experiments.css, [data-theme="purple-footer"]).
   const [{ lavenderTheme }] = useExperiments();
   const theme = lavenderTheme ? "purple-footer" : undefined;

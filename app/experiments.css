@@ -38,12 +38,17 @@
   color: #86efac;
 }
 
-/* Experiment (dev only): the footer in deep purple with the lavender theme,
-   matching the purple navbar. Swapping the colour variables flips it: peach
+/* Experiment (dev only): with the lavender theme, the footer is the navbar's
+   purple hue at a lighter, still saturated shade. Swapping the colour variables flips it: peach
    surfaces turn purple, purple text and icons turn peach. */
 [data-theme="purple-footer"] {
-  --color-peach: #2a1458;
+  --color-peach: #4a2683;
   --color-primary: #ffead8;
   --color-background: rgb(255 255 255 / 0.07);
   border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+/* Faded small text stays almost solid peach for a comfortable contrast. */
+[data-theme="purple-footer"] .text-primary\/70,
+[data-theme="purple-footer"] .text-primary\/75 {
+  color: rgb(255 234 216 / 0.93);
 }
