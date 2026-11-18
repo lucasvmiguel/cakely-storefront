@@ -37,3 +37,13 @@
 [data-theme="lavender"] .theme-accent .text-green-700 {
   color: #86efac;
 }
+
+/* Experiment (dev only): the footer in deep purple with the lavender theme,
+   matching the purple navbar. Swapping the colour variables flips it: peach
+   surfaces turn purple, purple text and icons turn peach. */
+[data-theme="purple-footer"] {
+  --color-peach: #2a1458;
+  --color-primary: #ffead8;
+  --color-background: rgb(255 255 255 / 0.07);
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}

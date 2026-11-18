@@ -1,6 +1,7 @@
 import { Clock, FileText, Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router";
 import { footerPages, site } from "~/content/site";
+import { useExperiments } from "~/lib/experiments";
 import { InstagramIcon, TikTokIcon, WhatsAppIcon } from "./icons";
 
 const tiles = [
@@ -17,9 +18,13 @@ const socials = [
 ];
 
 export function Footer({ markdownPath }: { markdownPath: string | null }) {
+  // Experiment (dev only): a deep purple footer with the lavender theme
+  // (experiments.css, [data-theme="purple-footer"]).
+  const [{ lavenderTheme }] = useExperiments();
+  const theme = lavenderTheme ? "purple-footer" : undefined;
   return (
     <>
-      <footer className="bg-peach text-primary">
+      <footer data-theme={theme} className="bg-peach text-primary">
         <div className="container max-w-7xl space-y-10 py-14">
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {tiles.map(({ icon: Icon, title, value, href }) => (
@@ -84,7 +89,10 @@ export function Footer({ markdownPath }: { markdownPath: string | null }) {
         </div>
       </footer>
       {markdownPath && (
-        <div className="flex items-center justify-center gap-2 border-t border-primary/10 bg-peach px-4 py-3 text-center text-sm text-primary/70">
+        <div
+          data-theme={theme}
+          className="flex items-center justify-center gap-2 border-t border-primary/10 bg-peach px-4 py-3 text-center text-sm text-primary/70"
+        >
           <FileText className="size-4 shrink-0" />
           <span>
             This page is also available in a machine-readable format for LLMs and AI tools.{" "}
