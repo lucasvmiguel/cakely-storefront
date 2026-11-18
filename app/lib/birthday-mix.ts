@@ -88,9 +88,29 @@ export function describeBoxes(mixes: Mix[], quantity: number, products: Product[
 }
 
 /** Text for the order, e.g. "Birthday box: 3 Coconut, …", or null when no
- *  box has a chosen mix. */
-export function birthdayOrderNote(mixes: Mix[], quantity: number, products: Product[]) {
+ *  box has a chosen mix. It goes in an address line, so it is kept within
+ *  `room` characters: past that, flavours are shortened to their first three
+ *  letters ("1: 3 Coc, 3 Lem, …"), and as a last resort it is cut with "…". */
+export function birthdayOrderNote(mixes: Mix[], quantity: number, products: Product[], room = Infinity) {
   if (quantity === 0 || !mixes.slice(0, quantity).some((m) => mixCount(m) > 0)) return null;
   const boxes = describeBoxes(mixes, quantity, products);
-  return quantity === 1 ? `Birthday box: ${boxes[0]}` : `Birthday boxes: ${boxes.join("; ")}`;
+  const full = quantity === 1 ? `Birthday box: ${boxes[0]}` : `Birthday boxes: ${boxes.join("; ")}`;
+  if (full.length <= room) return full;
+
+  const short = Array.from({ length: quantity }, (_, i) => {
+    const mix = mixes[i];
+    const what =
+      mix && mixCount(mix) > 0
+        ? Object.entries(mix)
+            .sort((a, b) => b[1] - a[1])
+            .map(([variantId, n]) => {
+              const p = products.find((x) => x.variantId === variantId);
+              return `${n} ${(p?.flavour ?? p?.title ?? "cake").slice(0, 3)}`;
+            })
+            .join(", ")
+        : "ours";
+    return `${i + 1}: ${what}`;
+  });
+  const compact = `Birthday boxes: ${short.join("; ")}`;
+  return compact.length <= room ? compact : `${compact.slice(0, Math.max(0, room - 1))}…`;
 }

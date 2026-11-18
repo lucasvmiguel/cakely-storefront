@@ -2,7 +2,7 @@
 // flavour carousel. The test catalog has three mini cakes in stock
 // (Chocofudge Brigadeiro, Coconut, Lemon); Cookies & Cream is sold out.
 import type { Page } from "@playwright/test";
-import { basketLink, expect, fillDetails, pickDate, placeOrder, SAT_7_NOV, test, waitForCheckout } from "./test";
+import { basketLink, expect, fillDetails, pickDate, placeOrder, SAT_7_NOV, seedBasket, test, waitForCheckout } from "./test";
 
 const builder = (page: Page) => page.locator("#build");
 const box = (page: Page) => page.getByRole("complementary", { name: "Your birthday box" });
@@ -145,4 +145,46 @@ test("lowering Birthday Specials in the basket drops the last box's flavours", a
   // A box added again afterwards starts without a mix.
   await page.getByRole("button", { name: "Increase Birthday Special quantity" }).click();
   await expect(page.getByText("Box 2: mixed by us")).toBeVisible();
+});
+
+test("many birthday boxes still fit the order's address line", async ({ page, hostinger }) => {
+  // Six boxes with mixes: written out in full this would pass 255 characters.
+  await seedBasket(page, { var_birthday: 6 });
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "cakely-birthday-mixes",
+      JSON.stringify(Array.from({ length: 6 }, () => ({ var_coconut: 4, var_choco: 3, var_lemon: 3 }))),
+    ),
+  );
+  await page.goto("/checkout");
+  await waitForCheckout(page);
+  await fillDetails(page);
+  await pickDate(page, SAT_7_NOV);
+  await placeOrder(page);
+  await expect(page.getByRole("heading", { name: "Thank you for your order!" })).toBeVisible();
+
+  const line = hostinger.orders[0].shipping_address?.address_2 ?? "";
+  expect(line.length).toBeLessThanOrEqual(255);
+  expect(line).toMatch(/^Delivery: Saturday,? 7 November 2026 · Birthday boxes: 1: 4 Coc, 3 Cho, 3 Lem; 2: /);
+});
+
+test("the basket bar sends a basket with a sold-out cake to the basket, not checkout", async ({ page }) => {
+  // €26 in total, but Cookies & Cream is sold out in the test catalog: only
+  // €19.50 could be ordered, below the €20 minimum.
+  await seedBasket(page, { var_coconut: 3, var_cookies: 1 });
+  await page.goto("/search");
+  await expect(page.getByText("A cake in your basket sold out")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Basket", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Checkout", exact: true })).toHaveCount(0);
+});
+
+test("on a phone, closing the basket bar brings back the product page's sticky button", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/products/coconut");
+  await page.getByRole("button", { name: "Add to Basket" }).first().click();
+  await page.getByRole("button", { name: "Hide basket bar" }).click();
+
+  await page.mouse.wheel(0, 1200);
+  const sticky = page.locator("div.fixed").getByRole("button", { name: "Add to Basket" });
+  await expect(sticky).toBeVisible();
 });

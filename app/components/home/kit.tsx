@@ -86,13 +86,6 @@ export function QuickAdd({
   const qty = lines.find((l) => l.variantId === product.variantId)?.quantity ?? 0;
   const solid = tone === "dark" ? "bg-primary text-primary-foreground" : "bg-peach text-primary";
 
-  if (!product.available) {
-    return (
-      <span className={`inline-flex h-11 items-center justify-center rounded-full border border-current/20 px-4 text-sm font-medium opacity-70 ${className}`}>
-        Back soon
-      </span>
-    );
-  }
   if (qty === 0) {
     return (
       <button

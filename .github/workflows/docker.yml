@@ -28,9 +28,7 @@ jobs:
       # Supply-chain cooldown: reject any locked package published < 7 days ago.
       - run: node scripts/check-package-age.mjs --days 7
       - run: npm ci
-      # Only what ships in the Docker image: dev tools (Vite, React Router's
-      # build plugin) never reach production, so their advisories don't block.
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --audit-level=high
       - run: npm run typecheck
       - run: npm run build
 

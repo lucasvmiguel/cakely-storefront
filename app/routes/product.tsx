@@ -2,11 +2,11 @@ import { ChevronRight, Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { data, Link } from "react-router";
 import type { Route } from "./+types/product";
+import { useBasketBar } from "~/components/BasketBar";
 import { AddToBasketButton, Price, ProductCard } from "~/components/ProductCard";
 import { track } from "~/lib/analytics";
 import { ProductGallery } from "~/components/ProductGallery";
 import { site } from "~/content/site";
-import { useCart } from "~/lib/cart";
 import { BIRTHDAY_SLUG, effectivePrice, htmlToText, PRODUCT_CATEGORY } from "~/lib/catalog";
 import { getProductBySlug, getRelated } from "~/lib/hostinger.server";
 import { HANDLING_DAYS } from "~/lib/delivery";
@@ -141,10 +141,10 @@ export default function ProductPage({ loaderData }: Route.ComponentProps) {
   }, [p.id]);
 
   // Mobile: sticky "Add to Basket" bar once the main button scrolls away,
-  // until something is in the basket; then the site-wide basket bar takes over.
-  const { count } = useCart();
+  // except while the site-wide basket bar is showing (both sit at the bottom).
+  const basketBar = useBasketBar();
   const [scrolledPast, setScrolledPast] = useState(false);
-  const showSticky = scrolledPast && count === 0;
+  const showSticky = scrolledPast && !basketBar.show;
   useEffect(() => {
     const onScroll = () => setScrolledPast(window.scrollY > 600);
     onScroll();

@@ -4,7 +4,7 @@
 // readers hear the new total. It can be closed; it then stays hidden (for the
 // tab, across pages) until the basket changes again.
 import { ShoppingBag, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useRouteLoaderData } from "react-router";
 import { useCart } from "~/lib/cart";
 import { effectivePrice, type Product } from "~/lib/catalog";
@@ -13,6 +13,7 @@ import { formatMoney } from "~/lib/money";
 
 const HIDDEN_ON = ["/cart", "/checkout"];
 const DISMISSED_KEY = "cakely-basket-bar-closed";
+const DISMISSED_EVENT = "cakely-basket-bar-closed";
 
 function readDismissed() {
   try {
@@ -22,41 +23,57 @@ function readDismissed() {
   }
 }
 
-function saveDismissed(value: string) {
-  try {
-    sessionStorage.setItem(DISMISSED_KEY, value);
-  } catch {
-    // Storage unavailable: the bar stays closed for this page view only.
-  }
-}
-
-/** Basket total and progress to the minimum order, from the live catalog. */
+/** Basket summary from the live catalog. Sold-out cakes don't count towards
+ *  the total, just as at checkout, which leaves them out. */
 export function useBasketSummary() {
   const { lines, count, ready } = useCart();
   const root = useRouteLoaderData("root") as { products?: Product[] } | undefined;
   const products = root?.products ?? [];
-  const total = lines.reduce((sum, l) => {
+  let total = 0;
+  let hasSoldOut = false;
+  for (const l of lines) {
     const p = products.find((x) => x.variantId === l.variantId);
-    return p ? sum + effectivePrice(p) * l.quantity : sum;
-  }, 0);
-  return { ready, count, total, missing: Math.max(0, MIN_ORDER_AMOUNT - total), currency: products[0]?.currency };
+    if (!p) continue;
+    if (p.available) total += effectivePrice(p) * l.quantity;
+    else hasSoldOut = true;
+  }
+  return { ready, count, total, hasSoldOut, missing: Math.max(0, MIN_ORDER_AMOUNT - total), currency: products[0]?.currency };
+}
+
+/** Whether the bar is showing on this page, and how to close it. Shared, so
+ *  the product page can bring back its own sticky button when it isn't. */
+export function useBasketBar() {
+  const summary = useBasketSummary();
+  const { pathname } = useLocation();
+  // The basket as it was when the bar was closed; a different basket shows it again.
+  const signature = `${summary.count}:${summary.total}`;
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  useEffect(() => {
+    const sync = () => setDismissed(readDismissed());
+    sync();
+    window.addEventListener(DISMISSED_EVENT, sync);
+    return () => window.removeEventListener(DISMISSED_EVENT, sync);
+  }, []);
+  const close = useCallback(() => {
+    try {
+      sessionStorage.setItem(DISMISSED_KEY, signature);
+    } catch {
+      // Storage unavailable: the event below still hides it for this page view.
+    }
+    setDismissed(signature);
+    window.dispatchEvent(new Event(DISMISSED_EVENT));
+  }, [signature]);
+  // Not needed where the basket is already the page.
+  const show = summary.count > 0 && dismissed !== signature && !HIDDEN_ON.some((p) => pathname.startsWith(p));
+  return { ...summary, show, close };
 }
 
 export function BasketBar() {
-  const { ready, count, total, missing, currency } = useBasketSummary();
-  const { pathname } = useLocation();
-  // The basket as it was when the bar was closed; a different basket shows it again.
-  const signature = `${count}:${total}`;
-  const [dismissed, setDismissed] = useState<string | null>(null);
-  useEffect(() => setDismissed(readDismissed()), []);
-  const close = () => {
-    setDismissed(signature);
-    saveDismissed(signature);
-  };
-  // Not needed where the basket is already the page.
-  const show = count > 0 && dismissed !== signature && !HIDDEN_ON.some((p) => pathname.startsWith(p));
+  const { ready, count, total, hasSoldOut, missing, currency, show, close } = useBasketBar();
   const progress = Math.min(1, total / MIN_ORDER_AMOUNT);
   const summary = `${count} ${count === 1 ? "cake" : "cakes"} · ${formatMoney(total, currency)}`;
+  // Checkout only when it would go through; otherwise the basket explains why.
+  const toCheckout = missing === 0 && !hasSoldOut;
 
   // Announce changes, not the basket that was already there on page load.
   const [announcement, setAnnouncement] = useState("");
@@ -81,11 +98,13 @@ export function BasketBar() {
           show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-24 opacity-0"
         }`}
       >
-        <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-primary py-2 pl-4 pr-1.5 sm:gap-3 text-primary-foreground shadow-2xl shadow-primary/30 sm:pl-5">
+        <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-primary py-2 pl-4 pr-1.5 text-primary-foreground shadow-2xl shadow-primary/30 sm:gap-3 sm:pl-5">
           <ShoppingBag className="hidden size-5 shrink-0 sm:block" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{summary}</p>
-            {missing > 0 ? (
+            {hasSoldOut ? (
+              <p className="text-xs text-white/80">A cake in your basket sold out</p>
+            ) : missing > 0 ? (
               <div className="mt-1 flex items-center gap-2">
                 <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/20">
                   <span
@@ -102,10 +121,10 @@ export function BasketBar() {
             )}
           </div>
           <Link
-            to={missing > 0 ? "/cart" : "/checkout"}
+            to={toCheckout ? "/checkout" : "/cart"}
             className="inline-flex h-11 shrink-0 items-center rounded-full bg-peach px-4 text-sm font-bold text-primary transition-transform hover:scale-[1.03] sm:px-5"
           >
-            {missing > 0 ? "Basket" : "Checkout"}
+            {toCheckout ? "Checkout" : "Basket"}
           </Link>
           <button
             type="button"

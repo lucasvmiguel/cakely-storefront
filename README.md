@@ -150,7 +150,7 @@ npm run typecheck
 npm run test:e2e   # end-to-end tests (first time: npx playwright install chromium)
 ```
 
-**Dependencies have a 7-day cooldown.** To guard against supply-chain attacks, `.npmrc` sets `min-release-age=7`, so `npm install`/`npm update` (npm 11.10 or later) never picks a version published in the last 7 days. CI enforces it: `scripts/check-package-age.mjs` fails the build if any package in `package-lock.json` is younger than that, and `npm audit --omit=dev` fails it on high or critical advisories in the production dependencies (the ones the Docker image ships; build tools like Vite don't reach production). To fix an urgent vulnerability whose patch is newer than 7 days, review the release and pass `--days 0` in the workflow for that one PR.
+**Dependencies have a 7-day cooldown.** To guard against supply-chain attacks, `.npmrc` sets `min-release-age=7`, so `npm install`/`npm update` (npm 11.10 or later) never picks a version published in the last 7 days. CI enforces it: `scripts/check-package-age.mjs` fails the build if any package in `package-lock.json` is younger than that, and `npm audit` fails it on high or critical advisories. To fix an urgent vulnerability whose patch is newer than 7 days, review the release and pass `--days 0` in the workflow for that one PR.
 
 ## Testing
 

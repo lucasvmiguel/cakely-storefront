@@ -47,6 +47,10 @@ type Form = {
 };
 
 // We only deliver in Amsterdam, so the city isn't something customers type.
+/** Longest second address line we send: a common database limit, so a long
+ *  Birthday Special note can't make Hostinger reject the order. */
+const ADDRESS_LINE_MAX = 255;
+
 const DELIVERY_CITY = "Amsterdam";
 
 const EMPTY_FORM: Form = {
@@ -273,13 +277,20 @@ export default function Checkout() {
         postal_code: form.postalCode.trim().toUpperCase(),
         country_code: "nl",
       };
-      // Flavours chosen for Birthday Special boxes, if any (lib/birthday-mix).
-      const birthdayNote = birthdayOrderNote(birthdayMixes, birthdayQty, root?.products ?? []);
+      // Hostinger has no delivery-date or note field; the second address line
+      // shows up on the order in the dashboard and in order emails. The
+      // flavours chosen for Birthday Special boxes, if any, follow the date,
+      // kept short enough for an address line (lib/birthday-mix).
+      const deliveryNote = `Delivery: ${deliveryLabel}`;
+      const birthdayNote = birthdayOrderNote(
+        birthdayMixes,
+        birthdayQty,
+        root?.products ?? [],
+        ADDRESS_LINE_MAX - deliveryNote.length - 3,
+      );
       await updateCart(session, {
         email: form.email.trim(),
-        // Hostinger has no delivery-date or note field; the second address line
-        // shows up on the order in the dashboard and in order emails.
-        shipping_address: { ...address, address_2: `Delivery: ${deliveryLabel}${birthdayNote ? ` · ${birthdayNote}` : ""}` },
+        shipping_address: { ...address, address_2: birthdayNote ? `${deliveryNote} · ${birthdayNote}` : deliveryNote },
         billing_address: address,
       });
       const cart = await setShippingMethod(session, shippingOptionId);
