@@ -50,9 +50,10 @@ export function Header() {
   const floating = scrolled;
   const blended = tone != null && !scrolled;
   // Experiment (dev only): with the lavender theme, other pages get the home
-  // page's purple bar, and it stays purple as a floating pill once scrolled.
+  // page's purple bar at the top, and on every page (home too) the floating
+  // pill is purple once scrolled.
   const [{ lavenderTheme }] = useExperiments();
-  const purpleBar = tone == null && lavenderTheme;
+  const purpleBar = lavenderTheme && (tone == null || floating);
   // Peach logo and badge whenever the bar under them is purple.
   const onDark = (blended && tone === "dark") || purpleBar;
 
@@ -80,7 +81,7 @@ export function Header() {
               : purpleBar
                 ? "bg-primary text-peach"
                 : "bg-peach text-foreground"
-            : `-mb-16 bg-transparent ${blended ? toneText[tone] : "text-foreground"}`
+            : `-mb-16 bg-transparent ${blended ? toneText[tone] : purpleBar ? "text-peach" : "text-foreground"}`
         }`}
       >
         <div

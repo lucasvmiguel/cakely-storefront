@@ -15,13 +15,36 @@ import { cakeHref, fromPrice, HOME_LIST, useHydrated, WordCycle, type HomeData }
 // server sends them once, which keeps the HTML small for the first paint; the
 // loop copies are added right after hydration.
 
+/** The list starting at `by` and wrapping round, e.g. rotate([a, b, c], 1) = [b, c, a]. */
+const rotate = <T,>(items: T[], by: number) => [...items.slice(by), ...items.slice(0, by)];
+
 /** One column of the moving jar wall. */
-function JarColumn({ cakes, reverse, duration }: { cakes: Product[]; reverse?: boolean; duration: string }) {
+function JarColumn({
+  cakes,
+  reverse,
+  duration,
+  stagger = 0,
+}: {
+  cakes: Product[];
+  reverse?: boolean;
+  duration: string;
+  /** Start this many cards' height into the loop (e.g. 0.5 staggers it half a card). */
+  stagger?: number;
+}) {
   const hydrated = useHydrated();
   const items = hydrated ? [...cakes, ...cakes] : cakes;
   return (
     <div className="h-full overflow-hidden">
-      <div className={reverse ? "marquee-y-reverse" : "marquee-y"} style={{ "--marquee-duration": duration } as CSSProperties}>
+      <div
+        className={reverse ? "marquee-y-reverse" : "marquee-y"}
+        style={
+          {
+            "--marquee-duration": duration,
+            // One loop is one pass through the cakes, so a card is 1/n of it.
+            animationDelay: `calc(${duration} * ${-stagger / Math.max(1, cakes.length)})`,
+          } as CSSProperties
+        }
+      >
         {items.map((c, i) => (
           <div key={`${c.id}-${i}`} className="relative mb-4 aspect-square overflow-hidden rounded-[2rem] bg-peach">
             <img src={productImage(c.images[0] ?? "", 320)} alt="" width={320} height={320} loading="lazy" className="photo-blend size-full object-cover" />
@@ -138,7 +161,9 @@ export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthd
           {hydrated && (
             <>
               <JarColumn cakes={rolling} duration="38s" />
-              <JarColumn cakes={[...rolling].reverse()} duration="46s" reverse />
+              {/* The second column starts half the list along and half a card
+                  lower, so the page never opens with the same cake side by side. */}
+              <JarColumn cakes={rotate(rolling, Math.ceil(rolling.length / 2))} duration="46s" reverse stagger={0.5} />
             </>
           )}
         </div>
