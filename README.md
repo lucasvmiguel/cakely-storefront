@@ -37,10 +37,7 @@ A few things live in this repo instead:
 
 **Birthday box flavours.** In the birthday section, customers pick the ten cakes that go in a Birthday Special (or tap "Surprise me"). Hostinger orders have no notes field, so the choice is kept next to the basket (`app/lib/birthday-mix.ts`), shown in the basket and checkout, and added to the order's second address line after the delivery date, for example "Delivery: Saturday 7 November 2026 · Birthday box: 4 Coconut, 3 Chocolate, 3 Lemon". It shows in the dashboard and order emails. A Birthday Special added from its product page says "mixed by us".
 
-**Design experiments.** On the dev server (`npm run dev`) an "Experiments" button in the bottom-left corner switches on, for this browser only:
-- **Purple theme:** the product, basket and checkout pages in dark purple.
-
-Production builds leave the panel and its styles out (`app/lib/experiments.ts`, `app/experiments.css`).
+**Look.** The home page has its own purple hero and sections. Every other page uses the palette of the home page's birthday section: a lavender page, white cards, purple text and buttons, and deep purple panels. This is set once in `app/app.css` (`[data-theme="lavender"]`, applied by `app/root.tsx`). The navbar is purple everywhere, and the footer is a lighter violet.
 
 **Basket bar.** Once something is in the basket, a bar at the bottom of every page (except the basket and checkout) shows the total, progress to the €20 minimum and a link to the basket or checkout.
 

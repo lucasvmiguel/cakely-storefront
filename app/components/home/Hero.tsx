@@ -82,7 +82,7 @@ function JarRow({ items, reverse = false, duration }: { items: Product[]; revers
               <img
                 ref={stopSkeleton}
                 src={productImage(c.images[0] ?? "", 448)}
-                alt={copy || i >= items.length ? "" : c.title}
+                alt="" // the card's text already names the cake
                 width={224}
                 height={224}
                 loading="lazy"

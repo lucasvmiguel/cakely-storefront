@@ -63,6 +63,8 @@
   --color-banner-foreground: #e7e5ff;
   --color-lavender: #e7e5ff;
   --color-plum: #605083;
+  /* The footer: the navbar's purple, lighter. */
+  --color-violet: #4a2683;
   --color-muted: oklch(0.97 0 0);
   --color-muted-foreground: oklch(0.556 0 0);
   --color-border: oklch(0.922 0 0);
@@ -301,4 +303,40 @@
 /* The purple logo SVG, recoloured to peach for purple headers. */
 .logo-on-dark {
   filter: brightness(0) invert(93%) sepia(9%) saturate(780%) hue-rotate(318deg) brightness(103%);
+}
+
+/* Every page except home (root.tsx sets data-theme on <main>) uses the palette
+   of the home page's birthday section: a lavender page, white cards, purple
+   text and buttons, deep purple panels (.theme-accent, e.g. the order
+   summaries) with peach text, and purple page banners (.theme-hero, e.g.
+   "Shop all cakes."). Tailwind's colours are variables, so redefining them
+   here recolours those pages without touching their markup. */
+[data-theme="lavender"] {
+  --color-peach: #ffffff;
+  --color-lavender: #f3f1ff;
+  --color-muted: #f3f1ff;
+  --color-muted-foreground: #574a85;
+  --color-border: rgb(42 20 88 / 0.12);
+  background-color: #e7e5ff;
+}
+[data-theme="lavender"] .theme-accent {
+  --color-foreground: #ffead8;
+  --color-primary: #ffead8;
+  --color-primary-foreground: #2a1458;
+  --color-muted-foreground: #e7e5ff;
+  --color-background: rgb(255 255 255 / 0.1);
+  --color-border: rgb(255 255 255 / 0.16);
+  background-color: #2a1458;
+  color: #ffead8;
+}
+[data-theme="lavender"] .theme-accent .text-green-700 {
+  color: #86efac;
+}
+/* Continues the purple navbar above it. */
+[data-theme="lavender"] .theme-hero {
+  --color-foreground: #ffead8;
+  --color-plum: #cbbcf6;
+  background-color: #2a1458;
+  color: #ffead8;
+  padding-bottom: 1.5rem;
 }
