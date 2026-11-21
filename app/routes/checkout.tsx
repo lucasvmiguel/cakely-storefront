@@ -527,7 +527,7 @@ export default function Checkout() {
               {codeStatus === "loading" ? "…" : "Apply"}
             </button>
           </form>
-          {codeError && <p className="-mt-2 text-sm text-red-600">{codeError}</p>}
+          {codeError && <p className="-mt-2 text-sm text-red-700">{codeError}</p>}
           {appliedCodes.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {appliedCodes.map((c) => (

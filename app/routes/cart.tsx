@@ -108,7 +108,7 @@ export default function Cart() {
                       🎉 {d}
                     </p>
                   ))}
-                <p className={`text-xs ${p.available ? "text-green-700" : "text-red-600"}`}>
+                <p className={`text-xs ${p.available ? "text-green-700" : "text-red-700"}`}>
                   {p.available ? "In Stock" : "Sold out — please remove it to continue"}
                 </p>
                 <div className="mt-auto flex items-center gap-2 pt-2">
@@ -170,7 +170,7 @@ export default function Cart() {
             <div className="mt-4 rounded-2xl bg-peach px-4 py-3 text-sm">
               Minimum order is {formatMoney(MIN_ORDER_AMOUNT, currency)}. Add{" "}
               <strong>{formatMoney(MIN_ORDER_AMOUNT - subtotal, currency)}</strong> more to check out.
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/20">
                 <div className="h-full bg-primary" style={{ width: `${Math.min(100, (subtotal / MIN_ORDER_AMOUNT) * 100)}%` }} />
               </div>
             </div>
