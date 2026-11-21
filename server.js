@@ -93,6 +93,7 @@ function precompressedAssets(dir) {
   })().catch((error) => console.error("Precompressing assets failed; serving them as usual.", error));
 
   return (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
     const body = ready.get(req.path.slice(1));
     if (!body || !acceptsBrotli(req.get("Accept-Encoding"))) return next();
     res.set({

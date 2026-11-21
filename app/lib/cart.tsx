@@ -14,7 +14,7 @@ import {
 export type CartLine = { variantId: string; quantity: number };
 
 const STORAGE_KEY = "cakely-cart";
-const MAX_QTY = 99;
+export const MAX_QTY = 99;
 
 type CartContextValue = {
   lines: CartLine[];

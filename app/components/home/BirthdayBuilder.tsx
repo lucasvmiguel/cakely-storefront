@@ -7,7 +7,7 @@ import { Link } from "react-router";
 import { home } from "~/content/site";
 import { track } from "~/lib/analytics";
 import { BIRTHDAY_SIZE, useBirthdayMixes, type Mix } from "~/lib/birthday-mix";
-import { useCart } from "~/lib/cart";
+import { MAX_QTY, useCart } from "~/lib/cart";
 import { effectivePrice, type Product } from "~/lib/catalog";
 import { productImage } from "~/lib/images";
 import { formatMoney } from "~/lib/money";
@@ -73,6 +73,8 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
   const jars = picks.map((id) => cakes.find((c) => c.variantId === id)).filter((c): c is Product => !!c);
   const price = formatMoney(effectivePrice(birthday), birthday.currency);
   const inBasket = lines.find((l) => l.variantId === birthday.variantId)?.quantity ?? 0;
+  // The basket holds at most MAX_QTY of a cake; past that a box can't be added.
+  const basketFull = inBasket >= MAX_QTY;
 
   const change = (c: Product, delta: number) => {
     stopFilling();
@@ -101,6 +103,7 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
   };
 
   const addBox = () => {
+    if (basketFull) return;
     // Line the mixes up with the boxes already in the basket first, so this
     // mix belongs to the box being added.
     const aligned = Array.from({ length: inBasket }, (_, i) => mixes[i] ?? {});
@@ -208,7 +211,7 @@ export function BirthdayBuilder({ cakes, birthday }: Pick<HomeData, "cakes" | "b
               </p>
               <button
                 type="button"
-                disabled={left > 0 || !birthday.available}
+                disabled={left > 0 || !birthday.available || basketFull}
                 onClick={addBox}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-peach font-bold text-primary transition-transform enabled:hover:scale-[1.02] disabled:opacity-40"
               >

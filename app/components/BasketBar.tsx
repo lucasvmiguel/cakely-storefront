@@ -24,16 +24,23 @@ function readDismissed() {
 }
 
 /** Basket summary from the live catalog. Sold-out cakes don't count towards
- *  the total, just as at checkout, which leaves them out. */
+ *  the total, just as at checkout, which leaves them out; cakes no longer in
+ *  the catalog aren't counted at all and are treated like sold-out ones. */
 export function useBasketSummary() {
-  const { lines, count, ready } = useCart();
+  const { lines, ready } = useCart();
   const root = useRouteLoaderData("root") as { products?: Product[] } | undefined;
   const products = root?.products ?? [];
   let total = 0;
+  let count = 0;
   let hasSoldOut = false;
   for (const l of lines) {
     const p = products.find((x) => x.variantId === l.variantId);
-    if (!p) continue;
+    if (!p) {
+      // An empty catalog means it didn't load (an error page), not that every cake is gone.
+      if (products.length) hasSoldOut = true;
+      continue;
+    }
+    count += l.quantity;
     if (p.available) total += effectivePrice(p) * l.quantity;
     else hasSoldOut = true;
   }
@@ -64,7 +71,7 @@ export function useBasketBar() {
     window.dispatchEvent(new Event(DISMISSED_EVENT));
   }, [signature]);
   // Not needed where the basket is already the page.
-  const show = summary.count > 0 && dismissed !== signature && !HIDDEN_ON.some((p) => pathname.startsWith(p));
+  const show = (summary.count > 0 || summary.hasSoldOut) && dismissed !== signature && !HIDDEN_ON.some((p) => pathname.startsWith(p));
   return { ...summary, show, close };
 }
 
@@ -103,7 +110,7 @@ export function BasketBar() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{summary}</p>
             {hasSoldOut ? (
-              <p className="text-xs text-white/80">A cake in your basket sold out</p>
+              <p className="text-xs text-white/80">A cake in your basket is no longer available</p>
             ) : missing > 0 ? (
               <div className="mt-1 flex items-center gap-2">
                 <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/20">
@@ -113,7 +120,7 @@ export function BasketBar() {
                   />
                 </span>
                 <span className="shrink-0 text-xs text-white/80">
-                  {formatMoney(missing, currency)} to go<span className="hidden sm:inline"> for the €20 minimum</span>
+                  {formatMoney(missing, currency)} to go<span className="hidden sm:inline"> for the {formatMoney(MIN_ORDER_AMOUNT, currency)} minimum</span>
                 </span>
               </div>
             ) : (

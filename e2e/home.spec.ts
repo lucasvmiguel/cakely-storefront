@@ -173,7 +173,7 @@ test("the basket bar sends a basket with a sold-out cake to the basket, not chec
   // €19.50 could be ordered, below the €20 minimum.
   await seedBasket(page, { var_coconut: 3, var_cookies: 1 });
   await page.goto("/search");
-  await expect(page.getByText("A cake in your basket sold out")).toBeVisible();
+  await expect(page.getByText("A cake in your basket is no longer available")).toBeVisible();
   await expect(page.getByRole("link", { name: "Basket", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Checkout", exact: true })).toHaveCount(0);
 });
@@ -187,4 +187,30 @@ test("on a phone, closing the basket bar brings back the product page's sticky b
   await page.mouse.wheel(0, 1200);
   const sticky = page.locator("div.fixed").getByRole("button", { name: "Add to Basket" });
   await expect(sticky).toBeVisible();
+});
+
+test("a box whose chosen flavour sold out is mixed by the bakery instead", async ({ page, hostinger }) => {
+  // Cookies & Cream is sold out in the test catalog.
+  await seedBasket(page, { var_birthday: 1 });
+  await page.evaluate(() =>
+    localStorage.setItem("cakely-birthday-mixes", JSON.stringify([{ var_cookies: 4, var_coconut: 6 }])),
+  );
+  await page.goto("/cart");
+  await expect(page.getByText("mixed by us (a flavour you picked sold out)")).toBeVisible();
+  await page.getByRole("link", { name: "Proceed to Checkout" }).click();
+  await waitForCheckout(page);
+  await expect(page.getByRole("complementary")).toContainText("mixed by us (a flavour you picked sold out)");
+  await fillDetails(page);
+  await pickDate(page, SAT_7_NOV);
+  await placeOrder(page);
+  await expect(page.getByRole("heading", { name: "Thank you for your order!" })).toBeVisible();
+  // The order doesn't ask for the sold-out flavour.
+  expect(hostinger.orders[0].shipping_address).toMatchObject({ address_2: expect.stringMatching(/^Delivery: Saturday,? 7 November 2026$/) });
+});
+
+test("the basket bar doesn't count a cake that's no longer in the catalog", async ({ page }) => {
+  await seedBasket(page, { var_coconut: 1, var_gone: 2 });
+  await page.goto("/search");
+  await expect(page.getByText("1 cake · €6.50")).toBeVisible();
+  await expect(page.getByText("A cake in your basket is no longer available")).toBeVisible();
 });

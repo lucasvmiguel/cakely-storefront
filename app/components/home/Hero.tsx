@@ -173,7 +173,7 @@ export function Hero({ cakes, birthday, wall }: Pick<HomeData, "cakes" | "birthd
       <div
         className="rise-in pb-10 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] lg:hidden"
         style={{ "--i": 4 } as CSSProperties}
-        aria-label="Our cakes"
+        aria-label="All our cakes"
         role="region"
       >
         <JarRow items={rolling} duration={`${Math.max(24, rolling.length * 7)}s`} />

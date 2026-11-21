@@ -78,29 +78,51 @@ export function describeMix(mix: Mix, products: Product[]) {
     .join(", ");
 }
 
-/** One line per box in the basket, for display. Boxes without a mix say so. */
+/** Whether a box's chosen mix can still be made: every flavour in it is in
+ *  the catalog and in stock. A mix that can't is dropped, and the bakery
+ *  mixes that box instead. */
+export function mixAvailable(mix: Mix, products: Product[]) {
+  return Object.keys(mix).every((id) => products.find((p) => p.variantId === id)?.available);
+}
+
+/** The mix for box `i`, or null when it has none or it can no longer be made. */
+function usableMix(mixes: Mix[], i: number, products: Product[]) {
+  const mix = mixes[i];
+  return mix && mixCount(mix) > 0 && mixAvailable(mix, products) ? mix : null;
+}
+
+/** One line per box in the basket, for display. Boxes without a mix say so,
+ *  as do boxes whose mix has a flavour that has since sold out. */
 export function describeBoxes(mixes: Mix[], quantity: number, products: Product[]) {
   return Array.from({ length: quantity }, (_, i) => {
     const mix = mixes[i];
-    const what = mix && mixCount(mix) > 0 ? describeMix(mix, products) : "mixed by us";
+    const usable = usableMix(mixes, i, products);
+    const what = usable
+      ? describeMix(usable, products)
+      : mix && mixCount(mix) > 0
+        ? "mixed by us (a flavour you picked sold out)"
+        : "mixed by us";
     return quantity === 1 ? what : `Box ${i + 1}: ${what}`;
   });
 }
 
 /** Text for the order, e.g. "Birthday box: 3 Coconut, …", or null when no
- *  box has a chosen mix. It goes in an address line, so it is kept within
+ *  box has a chosen mix that can still be made. It goes in an address line, so it is kept within
  *  `room` characters: past that, flavours are shortened to their first three
  *  letters ("1: 3 Coc, 3 Lem, …"), and as a last resort it is cut with "…". */
 export function birthdayOrderNote(mixes: Mix[], quantity: number, products: Product[], room = Infinity) {
-  if (quantity === 0 || !mixes.slice(0, quantity).some((m) => mixCount(m) > 0)) return null;
-  const boxes = describeBoxes(mixes, quantity, products);
+  const usable = Array.from({ length: quantity }, (_, i) => usableMix(mixes, i, products));
+  if (!usable.some(Boolean)) return null;
+  const boxes = usable.map((mix, i) => {
+    const what = mix ? describeMix(mix, products) : "mixed by us";
+    return quantity === 1 ? what : `Box ${i + 1}: ${what}`;
+  });
   const full = quantity === 1 ? `Birthday box: ${boxes[0]}` : `Birthday boxes: ${boxes.join("; ")}`;
   if (full.length <= room) return full;
 
-  const short = Array.from({ length: quantity }, (_, i) => {
-    const mix = mixes[i];
+  const short = usable.map((mix, i) => {
     const what =
-      mix && mixCount(mix) > 0
+      mix
         ? Object.entries(mix)
             .sort((a, b) => b[1] - a[1])
             .map(([variantId, n]) => {
