@@ -313,7 +313,7 @@ export default function ManualOrder() {
                     <p className="font-medium">
                       {p.title}{" "}
                       {!p.available && (
-                        <span className="font-normal text-red-600">(sold out: make it available in Hostinger to order it)</span>
+                        <span className="font-normal text-red-700">(sold out: make it available in Hostinger to order it)</span>
                       )}
                     </p>
                     <p className="text-muted-foreground">{formatMoney(effectivePrice(p), p.currency)}</p>
@@ -414,11 +414,11 @@ export default function ManualOrder() {
 
         <Section title="Shipping">
           {optionsError ? (
-            <p className="text-sm text-red-600">{optionsError}</p>
+            <p className="text-sm text-red-700">{optionsError}</p>
           ) : !options ? (
             <p className="text-sm text-muted-foreground">Loading the shipping options from Hostinger…</p>
           ) : !options.length ? (
-            <p className="text-sm text-red-600">Hostinger has no shipping options for the Netherlands.</p>
+            <p className="text-sm text-red-700">Hostinger has no shipping options for the Netherlands.</p>
           ) : (
             <div className="space-y-2">
               {options.map((o) => (
@@ -487,7 +487,7 @@ export default function ManualOrder() {
                   {quoteStatus === "loading" ? "…" : quoted ? "Applied" : "Apply"}
                 </button>
               </div>
-              {codeError && <p className="mt-1.5 text-sm text-red-600">{codeError}</p>}
+              {codeError && <p className="mt-1.5 text-sm text-red-700">{codeError}</p>}
             </div>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">

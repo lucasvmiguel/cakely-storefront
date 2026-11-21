@@ -39,8 +39,8 @@ export function AddToBasketButton({
         add(product.variantId);
         track.addToCart(product, 1, listName);
       }}
-      className={`relative z-20 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50 ${
-        size === "lg" ? "h-10" : "h-9"
+      className={`relative z-20 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 font-semibold text-primary-foreground transition-transform enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:pointer-events-none disabled:opacity-50 ${
+        size === "lg" ? "h-13 text-base" : "h-11 text-sm"
       } ${className}`}
     >
       <ShoppingCart className="size-4" />
@@ -60,15 +60,15 @@ export function ProductCard({
   priority?: boolean;
 }) {
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-background">
+    <div className="group relative flex h-full flex-col rounded-[2rem] bg-peach p-3 transition-shadow hover:shadow-xl hover:shadow-primary/10">
       <Link
         to={`/products/${product.slug}`}
         onClick={() => track.selectItem(listName, product)}
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-10 rounded-[2rem]"
         aria-label={product.title}
         prefetch="intent"
       />
-      <div className="skeleton overflow-hidden" style={{ paddingBottom: "78.86%" }}>
+      <div className="skeleton aspect-square overflow-hidden rounded-[1.5rem] bg-background">
         {product.images[0] && (
           <img
             ref={stopSkeleton}
@@ -77,21 +77,21 @@ export function ProductCard({
             sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, calc(100vw - 2rem)"
             alt={product.title}
             loading={priority ? "eager" : "lazy"}
-            className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="photo-blend absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-1 px-4 py-3">
-        <h3 className="line-clamp-2 text-sm font-medium">{product.title}</h3>
-        {product.subtitle && <p className="line-clamp-2 text-xs text-muted-foreground">{product.subtitle}</p>}
+      <div className="flex flex-1 flex-col gap-1 px-2 pb-3 pt-3">
+        <h3 className="line-clamp-2 text-lg font-bold leading-tight">{product.title}</h3>
+        {product.subtitle && <p className="line-clamp-2 text-sm text-primary/75">{product.subtitle}</p>}
         <div className="mt-auto pt-2">
-          <Price product={product} className="text-base font-semibold" />
+          <Price product={product} className="text-lg font-bold" />
           {product.pricePerKg && (
-            <p className="text-xs text-muted-foreground">({formatMoney(product.pricePerKg, product.currency)} per kg)</p>
+            <p className="text-xs text-primary/75">({formatMoney(product.pricePerKg, product.currency)} per kg)</p>
           )}
         </div>
       </div>
-      <div className="px-4 pb-4">
+      <div className="px-1 pb-1">
         <AddToBasketButton product={product} listName={listName} />
       </div>
     </div>

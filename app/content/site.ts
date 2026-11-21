@@ -1,3 +1,5 @@
+import { formatMoney } from "~/lib/money";
+
 // Business details and marketing copy, shared by the HTML pages, the .md
 // pages and the structured data so they never drift apart.
 
@@ -13,9 +15,8 @@ export const site = {
     street: "",
     city: "Amsterdam",
     region: "North Holland",
-    postalCode: "1013LD",
     country: "NL",
-    display: "Amsterdam, Amsterdam, North Holland, 1013LD",
+    display: "Amsterdam, North Holland",
   },
   logo: "/images/logo.svg",
   favicon: "/favicon.png",
@@ -30,76 +31,46 @@ export const site = {
   },
 } as const;
 
-export const announcements = [
-  { text: "WE DELIVER RIGHT TO YOUR DOOR IN AMSTERDAM" },
-  { text: "EXPLORE OUR LATEST CREATIONS", href: "/search" },
-] as const;
-
-export type ResponsiveImage = { base: string; alt: string };
-
-/** `base` maps to /images/<base>-800.webp, -1200.webp and <base>.jpg. */
+/** Home page copy. The page (routes/home.tsx), its Markdown twin (/home.md)
+ *  and the structured data all read it from here. */
 export const home = {
-  hero: [
-    {
-      headline: "Seriously good cake, handmade in Amsterdam",
-      cta: "SHOP NOW",
-      href: "/search",
-      align: "left" as const,
-      image: { base: "hero-1", alt: "Cakely mini cakes" },
-    },
-    {
-      headline: "Discover your favorite 4 original cakes",
-      cta: "TRY IT NOW",
-      href: "/search",
-      align: "center" as const,
-      image: { base: "hero-2", alt: "Cakely's four original cake flavours" },
-    },
-  ],
-  miniCakes: {
-    title: "Our Cakes",
-    subtitle: "Explore our mouthwatering cake options",
+  eyebrow: "Handmade in Amsterdam",
+  headline: ["Seriously good cake.", "Not your usual cake."],
+  plan: {
+    lead: "This weekend's plan:",
+    // Cycles in the hero; screen readers and /home.md get `summary`.
+    words: ["birthday", "movie night", "Sunday brunch", "date night", "just because"],
+    summary: "birthday, movie night, or just because.",
   },
-  feature: {
-    headline:
-      "Dulce de Leche sold out! Thanks to everyone who tried it. Something new is coming soon",
-    cta: "See All Cakes",
-    href: "/search",
-    image: { base: "feature-dulce", alt: "Dulce de Leche cake" },
+  /** `birthdayPrice` is the formatted Birthday Special price, or null when it's not on sale. */
+  ticker: (birthdayPrice: string | null) => [
+    "Not your usual cake",
+    "Handmade in Amsterdam",
+    "Delivered Saturday & Sunday",
+    ...(birthdayPrice ? [`10 cakes for ${birthdayPrice}`] : []),
+    "Orders close Wednesday night",
+  ],
+  flavours: { title: "The flavours." },
+  birthday: {
+    eyebrow: "Birthday Special",
+    title: ["Plan the party.", "Pick all ten."],
+    /** `price` is the formatted Birthday Special price. */
+    body: (price: string) => `Ten handmade mini cakes in one box for ${price}, made for sharing.`,
   },
   howTo: {
-    title: "How can I order?",
+    title: "How it works.",
     steps: [
-      {
-        title: "1. PICK YOUR FLAVOUR",
-        body: "All our cakes are handmade to order with care, which takes a few days to prepare.",
-        cta: { label: "See Options", href: "/search" },
-        image: { base: "step-1", alt: "Choosing a Cakely flavour" },
-      },
-      {
-        title: "2. CHOOSE A DATE",
-        body: "Choose your preferred delivery date at checkout, and we’ll ensure your cake arrives as fresh as possible — delivered exclusively in Amsterdam",
-        cta: null,
-        image: { base: "step-2", alt: "Planning the delivery date" },
-      },
-      {
-        title: "3. DELIVERY",
-        body: "Once payment is verified, we will begin preparing your order for dispatch — don't forget that the minimum order is €20",
-        cta: { label: "Order Now", href: "/search" },
-        image: { base: "step-3", alt: "Cakely delivery in Amsterdam" },
-      },
+      { title: "Pick your cakes", body: "Mix and match flavours. The minimum order is €20: four mini cakes, or one Birthday Special." },
+      { title: "Choose Saturday or Sunday", body: "Order by Wednesday night and it's this weekend. Later orders go to the next one." },
+      { title: "We bring it to your door", body: `Baked to order and delivered across Amsterdam, for ${formatMoney(site.shippingPrice)}.` },
     ],
   },
-  birthday: {
-    headline:
-      "Planning a birthday? Make it extra sweet with our Birthday Special — 10 handmade mini cakes for €50, made for sharing and celebrating",
-    cta: "Order Now",
-    image: { base: "birthday", alt: "Birthday Special basket of mini cakes" },
-  },
+  /** Not on the page itself; kept for /home.md. */
   about: {
     title: "A little about us",
     body: "We’re a team of cake enthusiasts living in Amsterdam. Passionate about creating, detail-obsessed, and always cooking with others in mind. What you’re holding is more than dessert, it’s teamwork in a jar",
-    image: { base: "about", alt: "The Cakely team at work" },
   },
+  signoff: { tagline: "not your usual cake.", socialsLead: "Try cakely on", handle: "@trycakely" },
 };
 
 export const footerPages = [

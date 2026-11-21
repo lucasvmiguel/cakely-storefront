@@ -6,7 +6,8 @@ import type { Route } from "./+types/checkout";
 import { track } from "~/lib/analytics";
 import { useCart } from "~/lib/cart";
 import { productImage, stopSkeleton } from "~/lib/images";
-import { effectivePrice, type Product } from "~/lib/catalog";
+import { birthdayOrderNote, clearBirthdayMixes, describeBoxes, useBirthdayMixes } from "~/lib/birthday-mix";
+import { BIRTHDAY_SLUG, effectivePrice, type Product } from "~/lib/catalog";
 import {
   CheckoutError,
   createCart,
@@ -46,6 +47,10 @@ type Form = {
 };
 
 // We only deliver in Amsterdam, so the city isn't something customers type.
+/** Longest second address line we send: a common database limit, so a long
+ *  Birthday Special note can't make Hostinger reject the order. */
+const ADDRESS_LINE_MAX = 255;
+
 const DELIVERY_CITY = "Amsterdam";
 
 const EMPTY_FORM: Form = {
@@ -66,7 +71,7 @@ const savedCodes = () => {
 };
 
 const input =
-  "h-11 w-full rounded-md border bg-background px-3 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "h-11 w-full rounded-2xl border border-primary/15 bg-background px-4 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20";
 const label = "mb-1.5 block text-sm font-medium";
 
 function Field({
@@ -88,9 +93,9 @@ function Field({
 
 function Section({ step, title, children }: { step: number; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border p-5 md:p-6">
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold">
-        <span className="flex size-7 items-center justify-center rounded-full bg-primary text-sm text-primary-foreground">{step}</span>
+    <section className="rounded-3xl bg-peach/50 p-5 md:p-7">
+      <h2 className="mb-5 flex items-center gap-3 text-xl font-bold">
+        <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm text-primary-foreground">{step}</span>
         {title}
       </h2>
       {children}
@@ -112,6 +117,8 @@ export default function Checkout() {
     .filter((i): i is { line: typeof i.line; product: Product } => !!i.product && i.product.available);
   const currency = items[0]?.product.currency ?? EUR;
   const subtotal = items.reduce((sum, i) => sum + effectivePrice(i.product) * i.line.quantity, 0);
+  const [birthdayMixes] = useBirthdayMixes();
+  const birthdayQty = items.find((i) => i.product.slug === BIRTHDAY_SLUG)?.line.quantity ?? 0;
 
   const [form, setForm] = useState<Form>(EMPTY_FORM);
   const available = useMemo(() => deliveryDates().map((d) => fromIso(d.iso)), []);
@@ -172,7 +179,10 @@ export default function Checkout() {
     track.beginCheckout(items.map((i) => ({ product: i.product, quantity: i.line.quantity })));
     (async () => {
       try {
-        const { session } = await createCart(root.salesChannelId, items.map((i) => i.line));
+        // Hostinger only accepts https return URLs, so the local dev server
+        // (plain http) passes the live site's URL instead, as manual-order does.
+        const origin = window.location.protocol === "https:" ? window.location.origin : root.siteUrl;
+        const { session } = await createCart(root.salesChannelId, items.map((i) => i.line), origin);
         // Shipping options depend on the country; we only deliver in the Netherlands.
         await updateCart(session, { shipping_address: { country_code: "nl", city: DELIVERY_CITY } });
         const options = await shippingOptions(session);
@@ -267,11 +277,20 @@ export default function Checkout() {
         postal_code: form.postalCode.trim().toUpperCase(),
         country_code: "nl",
       };
+      // Hostinger has no delivery-date or note field; the second address line
+      // shows up on the order in the dashboard and in order emails. The
+      // flavours chosen for Birthday Special boxes, if any, follow the date,
+      // kept short enough for an address line (lib/birthday-mix).
+      const deliveryNote = `Delivery: ${deliveryLabel}`;
+      const birthdayNote = birthdayOrderNote(
+        birthdayMixes,
+        birthdayQty,
+        root?.products ?? [],
+        ADDRESS_LINE_MAX - deliveryNote.length - 3,
+      );
       await updateCart(session, {
         email: form.email.trim(),
-        // Hostinger has no delivery-date field; the second address line shows
-        // up on the order in the dashboard and in order emails.
-        shipping_address: { ...address, address_2: `Delivery: ${deliveryLabel}` },
+        shipping_address: { ...address, address_2: birthdayNote ? `${deliveryNote} · ${birthdayNote}` : deliveryNote },
         billing_address: address,
       });
       const cart = await setShippingMethod(session, shippingOptionId);
@@ -288,6 +307,7 @@ export default function Checkout() {
         coupon: appliedCodes.join(",") || undefined,
       });
       clear();
+      clearBirthdayMixes();
       navigate("/checkout/success", {
         replace: true,
         state: {
@@ -314,7 +334,7 @@ export default function Checkout() {
       <Link to="/cart" className="text-sm text-muted-foreground hover:text-foreground hover:underline">
         ← Back to basket
       </Link>
-      <h1 className="mt-3 text-3xl font-bold">Checkout</h1>
+      <h1 className="mt-3 text-4xl font-bold tracking-[-0.03em] md:text-5xl">Checkout</h1>
 
       {setupError && (
         <p role="alert" className="mt-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -353,7 +373,7 @@ export default function Checkout() {
                 </span>
                 <p
                   aria-labelledby="city-label"
-                  className="flex h-11 items-center gap-2 rounded-md border bg-muted px-3 text-sm text-muted-foreground"
+                  className="flex h-11 items-center gap-2 rounded-2xl bg-background/60 px-4 text-sm text-muted-foreground"
                 >
                   <MapPin className="size-4 shrink-0" /> {DELIVERY_CITY}
                 </p>
@@ -379,9 +399,9 @@ export default function Checkout() {
                   disabled={(day) => !availableIsos.has(toIso(day))}
                   modifiers={{ available }}
                   modifiersClassNames={{ available: "[&>button]:font-semibold [&>button]:text-foreground [&>button]:bg-peach/60" }}
-                  className="w-full rounded-lg border"
+                  className="w-full rounded-2xl bg-background"
                 />
-                <div className="rounded-lg bg-muted px-4 py-3 text-sm" aria-live="polite">
+                <div className="rounded-2xl bg-background px-4 py-3 text-sm" aria-live="polite">
                   {deliveryDate ? (
                     <>
                       <span className="block text-muted-foreground">Your delivery date</span>
@@ -404,7 +424,7 @@ export default function Checkout() {
               {PAYMENT_METHODS.map((m) => (
                 <label
                   key={m.id}
-                  className={`flex cursor-pointer gap-3 rounded-lg border p-4 ${paymentId === m.id ? "border-primary bg-peach/40" : ""}`}
+                  className={`flex cursor-pointer gap-3 rounded-2xl border-2 bg-background p-4 ${paymentId === m.id ? "border-primary" : "border-transparent"}`}
                 >
                   <input
                     type="radio"
@@ -458,30 +478,36 @@ export default function Checkout() {
           <button
             type="submit"
             disabled={!session || submitting}
-            className="inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 lg:hidden"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 lg:hidden"
           >
             {submitting ? "Placing your order…" : total != null ? `Place order · ${formatMoney(total, currency)}` : "Place order"}
           </button>
         </form>
 
-        <aside className="h-fit space-y-4 rounded-xl border p-6 lg:sticky lg:top-24">
-          <h2 className="text-lg font-semibold">Order Summary</h2>
+        <aside className="theme-accent h-fit space-y-4 rounded-3xl bg-lavender/60 p-6 lg:sticky lg:top-24">
+          <h2 className="text-xl font-bold">Order Summary</h2>
           <ul className="space-y-3">
             {items.map(({ line, product: p }) => (
               <li key={line.variantId} className="flex items-center gap-3">
-                <div className="skeleton size-14 shrink-0 overflow-hidden rounded-lg">
+                <div className="skeleton size-14 shrink-0 overflow-hidden rounded-2xl bg-background">
                   {p.images[0] && <img ref={stopSkeleton} src={productImage(p.images[0], 120)} alt="" width={56} height={56} className="size-full object-cover" />}
                 </div>
                 <div className="flex-1 text-sm">
-                  <p className="font-medium">{p.title}</p>
+                  <p className="font-semibold">{p.title}</p>
                   <p className="text-muted-foreground">Qty {line.quantity}</p>
+                  {p.slug === BIRTHDAY_SLUG &&
+                    describeBoxes(birthdayMixes, line.quantity, root?.products ?? []).map((d) => (
+                      <p key={d} className="text-xs text-muted-foreground">
+                        {d}
+                      </p>
+                    ))}
                 </div>
                 <span className="text-sm font-medium">{formatMoney(effectivePrice(p) * line.quantity, p.currency)}</span>
               </li>
             ))}
           </ul>
 
-          <form onSubmit={applyCode} className="flex gap-2 border-t pt-4">
+          <form onSubmit={applyCode} className="flex gap-2 border-t border-primary/10 pt-4">
             <label htmlFor="discount" className="sr-only">
               Discount code
             </label>
@@ -496,12 +522,12 @@ export default function Checkout() {
             <button
               type="submit"
               disabled={!session || !code.trim() || codeStatus === "loading"}
-              className="h-10 shrink-0 rounded-md border px-4 text-sm font-medium hover:bg-muted disabled:opacity-50"
+              className="h-10 shrink-0 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {codeStatus === "loading" ? "…" : "Apply"}
             </button>
           </form>
-          {codeError && <p className="-mt-2 text-sm text-red-600">{codeError}</p>}
+          {codeError && <p className="-mt-2 text-sm text-red-700">{codeError}</p>}
           {appliedCodes.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {appliedCodes.map((c) => (
@@ -515,7 +541,7 @@ export default function Checkout() {
             </div>
           )}
 
-          <dl className="space-y-2 border-t pt-4 text-sm">
+          <dl className="space-y-2 border-t border-primary/10 pt-4 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Subtotal</dt>
               <dd>{formatMoney(subtotal, currency)}</dd>
@@ -531,12 +557,12 @@ export default function Checkout() {
               </div>
             )}
           </dl>
-          <div className="flex justify-between border-t pt-4 text-lg font-semibold">
+          <div className="flex justify-between border-t border-primary/10 pt-4 text-lg font-semibold">
             <span>Total</span>
             <span>{total == null ? "…" : formatMoney(total, currency)}</span>
           </div>
           {deliveryDate && (
-            <p className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm">
+            <p className="flex items-center gap-2 rounded-2xl bg-background px-4 py-3 text-sm">
               <CalendarDays className="size-4 shrink-0" /> Delivery on {formatDeliveryDate(deliveryDate)}
             </p>
           )}
@@ -545,7 +571,7 @@ export default function Checkout() {
             type="submit"
             form="checkout"
             disabled={!session || submitting}
-            className="hidden h-12 w-full items-center justify-center rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 lg:inline-flex"
+            className="hidden h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 lg:inline-flex"
           >
             {submitting ? "Placing your order…" : "Place order"}
           </button>

@@ -2,11 +2,12 @@ import { ChevronRight, Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { data, Link } from "react-router";
 import type { Route } from "./+types/product";
+import { useBasketBar } from "~/components/BasketBar";
 import { AddToBasketButton, Price, ProductCard } from "~/components/ProductCard";
 import { track } from "~/lib/analytics";
 import { ProductGallery } from "~/components/ProductGallery";
 import { site } from "~/content/site";
-import { effectivePrice, htmlToText, PRODUCT_CATEGORY } from "~/lib/catalog";
+import { BIRTHDAY_SLUG, effectivePrice, htmlToText, PRODUCT_CATEGORY } from "~/lib/catalog";
 import { getProductBySlug, getRelated } from "~/lib/hostinger.server";
 import { HANDLING_DAYS } from "~/lib/delivery";
 import { EUR, formatMoney, toDecimal } from "~/lib/money";
@@ -139,10 +140,13 @@ export default function ProductPage({ loaderData }: Route.ComponentProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
 
-  // Mobile: sticky "Add to Basket" bar once the main button scrolls away.
-  const [showSticky, setShowSticky] = useState(false);
+  // Mobile: sticky "Add to Basket" bar once the main button scrolls away,
+  // except while the site-wide basket bar is showing (both sit at the bottom).
+  const basketBar = useBasketBar();
+  const [scrolledPast, setScrolledPast] = useState(false);
+  const showSticky = scrolledPast && !basketBar.show;
   useEffect(() => {
-    const onScroll = () => setShowSticky(window.scrollY > 600);
+    const onScroll = () => setScrolledPast(window.scrollY > 600);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -166,21 +170,33 @@ export default function ProductPage({ loaderData }: Route.ComponentProps) {
                 {p.title}
               </span>
             </nav>
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Cakely</p>
-            <h1 className="font-serif text-[2rem] leading-tight">{p.title}</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-plum">Cakely · Handmade in Amsterdam</p>
+            <h1 className="text-4xl font-bold leading-[0.95] tracking-[-0.03em] md:text-5xl">{p.title}</h1>
             <div>
-              <Price product={p} className="text-2xl font-medium" />
+              <Price product={p} className="text-3xl font-bold" />
               {p.pricePerKg && (
                 <p className="text-sm text-muted-foreground">({formatMoney(p.pricePerKg, p.currency)} per kg)</p>
               )}
             </div>
+            {p.slug === BIRTHDAY_SLUG && p.available && (
+              <Link
+                to="/#build"
+                className="flex items-center justify-between gap-3 rounded-3xl bg-lavender px-5 py-4 font-semibold transition-colors hover:bg-lavender/70"
+              >
+                <span>
+                  🎉 Want to choose the ten flavours?
+                  <span className="block text-sm font-normal text-primary/70">Build your birthday box on the home page.</span>
+                </span>
+                <ChevronRight className="size-5 shrink-0" aria-hidden="true" />
+              </Link>
+            )}
             <AddToBasketButton product={p} size="lg" />
             <div
               className="prose-cakely text-base leading-relaxed text-muted-foreground"
               dangerouslySetInnerHTML={{ __html: sanitize(p.descriptionHtml) }}
             />
             {p.flavour && (
-              <details className="group border-y">
+              <details className="group rounded-3xl bg-peach/60 px-5">
                 <summary className="flex list-none items-center justify-between py-4 text-xl font-medium [&::-webkit-details-marker]:hidden">
                   Product Characteristics
                   <Plus className="size-5 group-open:hidden" />
@@ -198,7 +214,7 @@ export default function ProductPage({ loaderData }: Route.ComponentProps) {
       {related.length > 0 && (
         <section className="py-16">
           <div className="container">
-            <h2 className="mb-10 text-3xl font-bold animate-fade-up">Customers who bought this also bought</h2>
+            <h2 className="mb-10 text-3xl font-bold tracking-tight animate-fade-up md:text-4xl">Customers who bought this also bought</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
               {related.map((r, i) => (
                 <div key={r.id} className="animate-fade-up" style={{ animationDelay: `${i * 80}ms` }}>
@@ -211,6 +227,8 @@ export default function ProductPage({ loaderData }: Route.ComponentProps) {
       )}
 
       <div
+        aria-hidden={!showSticky}
+        inert={!showSticky}
         className={`fixed inset-x-0 bottom-0 z-40 border-t bg-background p-4 transition-all duration-300 md:hidden ${
           showSticky ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
         }`}

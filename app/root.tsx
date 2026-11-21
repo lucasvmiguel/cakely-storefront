@@ -13,10 +13,10 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { Analytics } from "./components/Analytics";
-import { AnnouncementBar } from "./components/AnnouncementBar";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
-import { AddedToast, CookieBanner, InstagramFab } from "./components/Overlays";
+import { BasketBar } from "./components/BasketBar";
+import { CookieBanner, InstagramFab } from "./components/Overlays";
 import { site } from "./content/site";
 import { CartProvider } from "./lib/cart";
 import { DEFAULT_GA_MEASUREMENT_ID, DEFAULT_META_PIXEL_ID } from "./lib/config";
@@ -62,6 +62,7 @@ function markdownPathFor(pathname: string) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const data = useRouteLoaderData<typeof loader>("root");
+  // Every page except home uses the lavender palette (app.css).
   return (
     <html lang="en-NL">
       <head>
@@ -73,13 +74,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="flex min-h-dvh flex-col">
         <CartProvider>
-          <AnnouncementBar />
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1" data-theme={pathname === "/" ? undefined : "lavender"}>
+            {children}
+          </main>
           <Footer markdownPath={markdownPathFor(pathname)} />
           <InstagramFab />
           <CookieBanner />
-          <AddedToast />
+          <BasketBar />
           {data && <Analytics gaId={data.analytics.gaId || null} pixelId={data.analytics.pixelId || null} />}
         </CartProvider>
         <ScrollRestoration />

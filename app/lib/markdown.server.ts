@@ -8,8 +8,6 @@ import { absolute } from "./seo";
 // Machine-readable (Markdown) versions of every public page, for LLMs and AI
 // tools. Served at the page URL + ".md" (e.g. /products/coconut.md).
 
-const img = (siteUrl: string, base: string) => absolute(siteUrl, `/images/${base}.jpg`);
-
 function productSummary(siteUrl: string, p: Product) {
   return [
     `### [${p.title}](${siteUrl}/products/${p.slug}.md)`,
@@ -40,54 +38,45 @@ function contactBlock() {
 }
 
 export function homeMarkdown(siteUrl: string, products: Product[]) {
-  const miniCakes = products.filter((p) => p.slug !== BIRTHDAY_SLUG);
-  const birthday = products.find((p) => p.slug === BIRTHDAY_SLUG);
+  // Same as the page: cakes in stock, then the Birthday Special.
+  const miniCakes = products.filter((p) => p.slug !== BIRTHDAY_SLUG && p.available);
+  const birthday = products.find((p) => p.slug === BIRTHDAY_SLUG && p.available);
   const parts = [
-    `# ${site.name}`,
+    `# ${site.name}: ${home.headline.join(" ")}`,
     "",
     site.description,
     "",
     `![${site.name}](${absolute(siteUrl, site.logo)})`,
     "",
+    `${home.plan.lead} ${home.plan.summary}`,
+    "",
     contactBlock(),
-    "## Slideshow",
-    "",
-    ...home.hero.flatMap((s) => [
-      `![${s.headline}](${img(siteUrl, s.image.base)})`,
-      "",
-      `**${s.headline}**`,
-      "",
-      `[${s.cta}](${absolute(siteUrl, s.href)})`,
-      "",
-    ]),
-    `## ${home.miniCakes.title}`,
-    "",
-    home.miniCakes.subtitle,
+    `## ${home.flavours.title.replace(/\.$/, "")}`,
     "",
     ...miniCakes.map((p) => productSummary(siteUrl, p)),
   ];
-  parts.push(
-    "## Featured flavour",
-    "",
-    home.feature.headline,
-    "",
-    `[${home.feature.cta}](${absolute(siteUrl, home.feature.href)})`,
-    "",
-    `## ${home.howTo.title}`,
-    "",
-    ...home.howTo.steps.flatMap((s) => [`### ${s.title}`, "", s.body, ""]),
-  );
   if (birthday) {
+    const price = formatMoney(effectivePrice(birthday), birthday.currency);
     parts.push(
-      "## Birthday Special",
+      `## ${home.birthday.eyebrow}: ${home.birthday.title.join(" ")}`,
       "",
-      home.birthday.headline,
+      home.birthday.body(price),
+      "You choose the ten flavours on the home page; they are sent with the order.",
       "",
-      `[${home.birthday.cta}](${siteUrl}/products/${birthday.slug}.md)`,
+      `[${birthday.title}](${siteUrl}/products/${birthday.slug}.md)`,
       "",
     );
   }
-  parts.push(`## ${home.about.title}`, "", home.about.body, "", morePages(siteUrl));
+  parts.push(
+    `## ${home.howTo.title.replace(/\.$/, "")}`,
+    "",
+    ...home.howTo.steps.flatMap((s, i) => [`### ${i + 1}. ${s.title}`, "", s.body, ""]),
+    `## ${home.about.title}`,
+    "",
+    home.about.body,
+    "",
+    morePages(siteUrl),
+  );
   return parts.join("\n");
 }
 

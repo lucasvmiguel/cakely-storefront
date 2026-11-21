@@ -14,7 +14,7 @@ import {
 export type CartLine = { variantId: string; quantity: number };
 
 const STORAGE_KEY = "cakely-cart";
-const MAX_QTY = 99;
+export const MAX_QTY = 99;
 
 type CartContextValue = {
   lines: CartLine[];
@@ -24,8 +24,6 @@ type CartContextValue = {
   setQuantity: (variantId: string, quantity: number) => void;
   remove: (variantId: string) => void;
   clear: () => void;
-  /** Last item added, used for the "Added to basket" toast. */
-  lastAdded: { variantId: string; at: number } | null;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -48,7 +46,6 @@ function read(): CartLine[] {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [ready, setReady] = useState(false);
-  const [lastAdded, setLastAdded] = useState<CartContextValue["lastAdded"]>(null);
 
   useEffect(() => {
     setLines(read());
@@ -90,7 +87,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           return [...prev, { variantId, quantity: Math.min(MAX_QTY, quantity) }];
         });
-        setLastAdded({ variantId, at: Date.now() });
       },
       setQuantity(variantId: string, quantity: number) {
         update((prev) =>
@@ -116,10 +112,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ...actions,
       lines,
       ready,
-      lastAdded,
       count: lines.reduce((n, l) => n + l.quantity, 0),
     }),
-    [actions, lines, ready, lastAdded],
+    [actions, lines, ready],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

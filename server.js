@@ -1,3 +1,7 @@
+import { readdirSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { promisify } from "node:util";
+import { constants as zlib, brotliCompress } from "node:zlib";
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
@@ -9,7 +13,10 @@ const PORT = Number.parseInt(process.env.PORT || "3000");
 
 const app = express();
 
-app.use(compression());
+// Pages are rendered per request, so they get a fast Brotli level (5 is
+// smaller than the default 4 at the same cost). Built CSS/JS gets the best
+// level once, below.
+app.use(compression({ brotli: { params: { [zlib.BROTLI_PARAM_QUALITY]: 5 } } }));
 app.disable("x-powered-by");
 app.use((_req, res, next) => {
   res.set({
@@ -41,6 +48,7 @@ if (DEVELOPMENT) {
   });
 } else {
   console.log("Starting production server");
+  app.use("/assets", precompressedAssets("build/client/assets"));
   app.use(
     "/assets",
     express.static("build/client/assets", { immutable: true, maxAge: "1y" }),
@@ -57,3 +65,58 @@ if (DEVELOPMENT) {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+/**
+ * Serves the built CSS and JS with maximum Brotli compression. Their names are
+ * content hashes, so each file is compressed once, in the background when the
+ * server starts (it takes tens of milliseconds a file, too slow for a
+ * request), and kept in memory. Until a file is ready, and for clients that
+ * don't accept Brotli, requests fall through to express.static, which the
+ * compression middleware compresses as usual.
+ *
+ * @param {string} dir
+ * @returns {import("express").RequestHandler}
+ */
+function precompressedAssets(dir) {
+  /** @type {Record<string, string>} */
+  const types = { ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
+  /** @type {Map<string, Buffer>} */
+  const ready = new Map();
+  const brotli = promisify(brotliCompress);
+  (async () => {
+    for (const name of readdirSync(dir).filter((f) => f.endsWith(".css") || f.endsWith(".js"))) {
+      const body = await brotli(await readFile(`${dir}/${name}`), {
+        params: { [zlib.BROTLI_PARAM_QUALITY]: zlib.BROTLI_MAX_QUALITY },
+      });
+      ready.set(name, body);
+    }
+  })().catch((error) => console.error("Precompressing assets failed; serving them as usual.", error));
+
+  return (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    const body = ready.get(req.path.slice(1));
+    if (!body || !acceptsBrotli(req.get("Accept-Encoding"))) return next();
+    res.set({
+      "Content-Type": types[req.path.slice(req.path.lastIndexOf("."))],
+      "Content-Encoding": "br",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      Vary: "Accept-Encoding",
+    });
+    res.send(body);
+  };
+}
+
+/**
+ * True when an Accept-Encoding header allows Brotli: "br" listed with a
+ * non-zero q (so "br;q=0", which refuses it, is false).
+ *
+ * @param {string | undefined} header
+ */
+function acceptsBrotli(header) {
+  return (header ?? "").split(",").some((part) => {
+    const [coding, ...params] = part.trim().toLowerCase().split(";");
+    if (coding.trim() !== "br") return false;
+    const q = params.map((p) => p.trim()).find((p) => p.startsWith("q="));
+    return !q || Number(q.slice(2)) > 0;
+  });
+}

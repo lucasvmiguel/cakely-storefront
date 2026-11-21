@@ -1,16 +1,47 @@
 import { Menu, Search, ShoppingCart, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router";
+import { Link, NavLink, useLocation, useMatches } from "react-router";
 import { site } from "~/content/site";
 import { useCart } from "~/lib/cart";
 
 const iconButton =
-  "inline-flex size-9 items-center justify-center rounded-md transition-colors hover:bg-black/5";
+  "inline-flex size-9 items-center justify-center rounded-md transition-colors hover:bg-current/10";
+
+/** The header is purple with a peach logo on every page, and floats as a
+ *  purple pill once scrolled. A page with a purple hero can opt in with
+ *  `handle = { heroTone: "dark" }`: the header then turns transparent and the
+ *  page slides up beneath it (so the hero, glow and all, runs behind it).
+ *  Heroes on such pages add `pt-16` to clear the header. */
+export type HeroTone = "dark";
+
+function useHeroTone() {
+  const matches = useMatches();
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const tone = (matches[i].handle as { heroTone?: HeroTone } | undefined)?.heroTone;
+    if (tone) return tone;
+  }
+  return undefined;
+}
+
+function useScrolled(threshold = 24) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > threshold);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [threshold]);
+  return scrolled;
+}
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const location = useLocation();
+  const tone = useHeroTone();
+  const scrolled = useScrolled();
+  // Every page floats the header as a pill once scrolled.
+  const floating = scrolled;
 
   // Close the drawer whenever we navigate.
   useEffect(() => setOpen(false), [location.pathname]);
@@ -28,8 +59,18 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b bg-peach text-foreground">
-        <div className="relative flex h-16 items-center justify-between px-2 sm:px-6">
+      <header
+        className={`sticky top-0 z-50 text-peach transition-colors duration-300 ${
+          tone ? "-mb-16 bg-transparent" : floating ? "bg-transparent" : "bg-primary"
+        }`}
+      >
+        <div
+          className={`relative flex items-center justify-between px-2 transition-all duration-300 sm:px-6 ${
+            floating
+              ? "mx-2 mt-2 h-14 rounded-full bg-primary/95 shadow-lg shadow-primary/20 ring-1 ring-white/10 sm:mx-4"
+              : "h-16"
+          }`}
+        >
           <button type="button" className={iconButton} aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}>
             <Menu className="size-5" />
           </button>
@@ -37,9 +78,15 @@ export function Header() {
           <Link
             to="/"
             aria-label="Cakely home"
-            className="absolute left-14 top-1/2 flex h-16 -translate-y-1/2 items-center overflow-hidden sm:left-1/2 sm:-translate-x-1/2"
+            className="absolute left-14 top-1/2 flex h-14 -translate-y-1/2 items-center overflow-hidden sm:left-1/2 sm:-translate-x-1/2"
           >
-            <img src={site.logo} alt="Cakely" width={144} height={144} className="h-36 w-auto max-w-none sm:h-44" />
+            <img
+              src={site.logo}
+              alt="Cakely"
+              width={144}
+              height={144}
+              className="logo-on-dark h-36 w-auto max-w-none sm:h-44"
+            />
           </Link>
 
           <div className="flex items-center gap-1">
@@ -49,7 +96,7 @@ export function Header() {
             <Link to="/cart" className={`${iconButton} relative`} aria-label={`Basket, ${count} items`}>
               <ShoppingCart className="size-5" />
               {count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-4.5 text-primary-foreground">
+                <span className="absolute -right-0.5 -top-0.5 flex min-w-4.5 items-center justify-center rounded-full bg-peach px-1 text-[10px] font-semibold leading-4.5 text-primary">
                   {count}
                 </span>
               )}
@@ -68,7 +115,7 @@ export function Header() {
         aria-label="Main menu"
         aria-hidden={!open}
         inert={!open}
-        className={`fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r bg-peach shadow-lg transition-transform duration-300 sm:w-80 ${
+        className={`fixed inset-y-0 left-0 z-[70] flex w-72 flex-col bg-primary text-peach shadow-lg transition-transform duration-300 sm:w-80 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -76,28 +123,28 @@ export function Header() {
           <X className="size-4" />
         </button>
         <div className="flex h-28 items-center justify-center overflow-hidden">
-          <img src={site.logo} alt="Cakely" width={176} height={176} className="h-44 w-auto max-w-none" />
+          <img src={site.logo} alt="Cakely" width={176} height={176} className="logo-on-dark h-44 w-auto max-w-none" />
         </div>
-        <ul className="border-b px-4 py-2">
+        <ul className="border-b border-white/10 px-4 py-2">
           <li>
-            <NavLink to="/" className="block rounded-md px-2 py-2 text-sm font-medium hover:bg-black/5">
+            <NavLink to="/" className="block rounded-md px-2 py-2 text-sm font-medium hover:bg-white/10">
               Home
             </NavLink>
           </li>
           <li>
-            <NavLink to="/search" className="block rounded-md px-2 py-2 text-sm font-medium hover:bg-black/5">
+            <NavLink to="/search" className="block rounded-md px-2 py-2 text-sm font-medium hover:bg-white/10">
               Shop all cakes
             </NavLink>
           </li>
         </ul>
-        <ul className="border-b px-4 py-2">
+        <ul className="border-b border-white/10 px-4 py-2">
           <li>
-            <NavLink to="/return-policy" className="block rounded-md px-2 py-2 text-sm font-semibold hover:bg-black/5">
+            <NavLink to="/return-policy" className="block rounded-md px-2 py-2 text-sm font-semibold hover:bg-white/10">
               Return Policy
             </NavLink>
           </li>
           <li>
-            <NavLink to="/faq" className="block rounded-md px-2 py-2 text-sm font-semibold hover:bg-black/5">
+            <NavLink to="/faq" className="block rounded-md px-2 py-2 text-sm font-semibold hover:bg-white/10">
               FAQ
             </NavLink>
           </li>

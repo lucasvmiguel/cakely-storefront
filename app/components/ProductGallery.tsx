@@ -25,7 +25,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
     };
   });
 
-  if (!count) return <div className="aspect-[4/5] w-full rounded-[0.875rem] bg-muted" />;
+  if (!count) return <div className="aspect-[4/5] w-full rounded-[2rem] bg-muted" />;
 
   return (
     <div className="flex gap-4">
@@ -37,7 +37,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
               type="button"
               onClick={() => setActive(i)}
               aria-label={`Show image ${i + 1}`}
-              className={`skeleton size-20 overflow-hidden rounded-[0.875rem] border-2 ${i === active ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}
+              className={`skeleton size-20 overflow-hidden rounded-2xl border-2 ${i === active ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}
             >
               <img ref={stopSkeleton} src={productImage(src, 160)} alt="" width={80} height={80} className="size-full object-cover" loading="lazy" />
             </button>
@@ -47,7 +47,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
 
       <div className="group relative flex-1">
         <div
-          className="skeleton w-full cursor-zoom-in overflow-hidden rounded-[0.875rem]"
+          className="skeleton w-full cursor-zoom-in overflow-hidden rounded-[2rem]"
           style={{ paddingBottom: "125%" }}
           onClick={() => setZoom(true)}
           onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
@@ -99,7 +99,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
             {/* Fixed 4:5 box (the gallery's ratio) so the viewer doesn't resize as the photo loads. */}
             <div
               key={images[active]}
-              className="skeleton aspect-[4/5] w-[min(92vw,72vh)] overflow-hidden rounded-[0.875rem] [&[data-loaded]]:bg-transparent"
+              className="skeleton aspect-[4/5] w-[min(92vw,72vh)] overflow-hidden rounded-[2rem] [&[data-loaded]]:bg-transparent"
               onClick={(e) => e.stopPropagation()}
             >
               <img ref={stopSkeleton} src={productImage(images[active], 1600)} alt={title} className="absolute inset-0 size-full object-contain" />

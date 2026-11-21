@@ -1,8 +1,7 @@
-import { CheckCircle2, Cookie } from "lucide-react";
+import { Cookie } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { site } from "~/content/site";
-import { useCart } from "~/lib/cart";
 import { readConsent, saveConsent, type Consent } from "~/lib/consent";
 import { InstagramIcon } from "./icons";
 
@@ -59,32 +58,5 @@ export function InstagramFab() {
     >
       <InstagramIcon className="size-6" />
     </a>
-  );
-}
-
-/** "Added to basket" confirmation shown after any add-to-basket click. */
-export function AddedToast() {
-  const { lastAdded } = useCart();
-  const [shown, setShown] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!lastAdded) return;
-    setShown(lastAdded.at);
-    const id = setTimeout(() => setShown(null), 3000);
-    return () => clearTimeout(id);
-  }, [lastAdded]);
-
-  return (
-    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 top-20 z-[90] flex justify-center px-4">
-      {shown && (
-        <div className="pointer-events-auto flex items-center gap-3 rounded-lg border bg-background px-4 py-3 text-sm shadow-lg animate-fade-up">
-          <CheckCircle2 className="size-4 text-green-600" />
-          <span>Added to basket</span>
-          <Link to="/cart" className="font-semibold underline underline-offset-2">
-            View basket
-          </Link>
-        </div>
-      )}
-    </div>
   );
 }
